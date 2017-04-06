@@ -23,4 +23,5 @@ N = 10; % Horizon length
 
 
 
+fprintf('Programm terminated. \n')
 
