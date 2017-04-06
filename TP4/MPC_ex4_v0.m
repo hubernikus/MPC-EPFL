@@ -3,7 +3,7 @@
 %            Model Predictive Control - Exercise 4
 %              EPFL - Spring semester 2017 -
 %
-%            Huber Lukas - Zgraggen Yannik
+%            Huber Lukas - Zgraggen Jannik
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
