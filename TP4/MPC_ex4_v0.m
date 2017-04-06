@@ -13,6 +13,8 @@ clear variables; close all; clear all;
 A = [0.9752, 1.4544; -0.0327, 0.9315];
 B = [0.0248; 0.0327];
 
+Q = [10 0; 0 10];
+
 f_nat = 0.15; % [r/s] Natural frquency
 
 discRate = 1.5; % [r/s] Discretization rate applied
