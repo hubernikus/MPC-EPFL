@@ -60,7 +60,7 @@ g = kron([-1;1],[5 0.2 1.75]')
 G = kron([-1;1],eye(dimX+dimU))
 
 % T
-H = diag(eye[
+%H = diag(eye[
 
 
 
