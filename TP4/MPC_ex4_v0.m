@@ -51,8 +51,8 @@ LQRSet = sys.LQRSet
 
 
 % Ex2 Matlab optimization
-% z = [x;u];
-%H = blkdiag(kron(eye(N−1),Q), Qf, kron(eye(N),R))
+%z = [x;u];
+%H = blkdiag(kron(eye(N???1),Q), Qf, kron(eye(N),R))
 
 % Optimization
 H= [Q,zeros(dimX,dimU);zeros(dimU,dimX) R]
@@ -67,9 +67,18 @@ G = kron([-1;1],eye(dimX+dimU))
 
 
 
+H=blkdiag(kron(eye(N),Q),kron(eye(N),R));
 
 %[zopt, fval, flag] = quadprog(H, h, G, g, T, t);
 
 
-fprintf('Programm terminated. \n')
+%sys.LGRGain = sys.LQRPenalty.weight sys.LQRSet
 
+
+LQRGarin = sys.LQRGain;
+LQRPenalty = sys.LQRPenalty.weight;
+LQRSet = sys.LQRSet;
+
+
+H=[Q,zeros(2);zeros(2),zeros(2)];
+fprintf('Programm terminated. \n')
