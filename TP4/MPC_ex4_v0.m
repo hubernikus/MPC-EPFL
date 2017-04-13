@@ -9,6 +9,9 @@
 
 clear variables; close all; clear all;
 
+addpath(genpath('../tbxmanager'))
+
+
 %%
 clc;
 
