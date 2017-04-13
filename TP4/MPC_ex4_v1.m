@@ -50,8 +50,8 @@ LQRSet = sys.LQRSet
 
 
 % Ex2 Matlab optimization
-%z = [x;u];
-%H = blkdiag(kron(eye(N???1),Q), Qf, kron(eye(N),R))
+% z = [x;u];
+%H = blkdiag(kron(eye(N−1),Q), Qf, kron(eye(N),R))
 
 % Optimization
 H= [Q,zeros(dimX,dimU);zeros(dimU,dimX) R];
@@ -66,31 +66,15 @@ G = blkdiag(kron(eye(N),[1 0; -1 0; 0 1; 0 -1]), ...
             kron(eye(N),[1;-1]))
 
 
-<<<<<<< HEAD
 % Create Equality matrizes Aeq and beq
 T = [eye(N*dimX) + kron(diag(ones(1,N-1),-1),A),  kron(diag(ones(1,N)),B)];
 t = [A; zeros(dimX*(N-1),dimX)];
-=======
-H=blkdiag(kron(eye(N),Q),kron(eye(N),R));
->>>>>>> 81ef485c5beae39f18854beae3a127c3b3affa46
 
 %[zopt, fval, flag] = quadprog(H, h, G, g, T, t);
 
 
-<<<<<<< HEAD
 
 
 !!!! REMOV
 fprintf('Programm terminated. \n')
-=======
-%sys.LGRGain = sys.LQRPenalty.weight sys.LQRSet
 
-
-LQRGarin = sys.LQRGain;
-LQRPenalty = sys.LQRPenalty.weight;
-LQRSet = sys.LQRSet;
->>>>>>> 81ef485c5beae39f18854beae3a127c3b3affa46
-
-
-H=[Q,zeros(2);zeros(2),zeros(2)];
-fprintf('Programm terminated. \n')
