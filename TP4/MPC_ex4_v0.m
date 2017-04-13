@@ -44,9 +44,10 @@ sys.u.max = 1.75;
 sys.x.penalty = QuadFunction(Q);
 sys.u.penalty = QuadFunction(R);
 
-LQRGarin = sys.LQRGain
-LQRPenalty = sys.LQRPenalty.weight
-LQRSet = sys.LQRSet
+LQRGarin = sys.LQRGain;
+LQRPenalty = sys.LQRPenalty.weight;
+LQRSet = sys.LQRSet;
+  
 
 
 % Ex2 Matlab optimization
@@ -56,19 +57,21 @@ LQRSet = sys.LQRSet
 % Optimization
 H=blkdiag(kron(eye(N),Q),kron(eye(N),R));
 %H= [Q,zeros(dimX,dimU);zeros(dimU,dimX) R];
-h = zeros(N*(dimX+dimY),1);
+h = zeros(N*(dimX+dimU),1);
 
 % Define Matrizes for comparison restriction
 g = [kron(ones(N,1),[5 -5 0.2 -0.2]'); kron(ones(N,1),[1.75 -1.75]')];
 G = blkdiag(kron(eye(N),[1 0; -1 0; 0 1; 0 -1]), ...
-            kron(eye(N),[1;-1]))
+            kron(eye(N),[1;-1]));
 
 % Create Equality matrizes Aeq and beq
-T = [eye(N*dimX) + kron(diag(ones(1,N-1),-1),A),  kron(diag(ones(1,N)),B)];
+T = [eye(N*dimX) + kron(diag(ones(1,N-1),-1),-A),  kron(diag(ones(1,N)),B)];
 t = [A; zeros(dimX*(N-1),dimX)];
 
+x0=[3;0];
+t=t*x0;
 
-
+[zopt, fval, flag] = quadprog(H, h, G, g, T, t);
 
 LQRGarin = sys.LQRGain;
 LQRPenalty = sys.LQRPenalty.weight;
