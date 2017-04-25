@@ -1,0 +1,569 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>ex5</title><meta name="generator" content="MATLAB 8.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-05-12"><meta name="DC.source" content="ex5.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">------------ EXERCISE 1 ------------- %%</a></li><li><a href="#3">------------ EXERCISE 2 ------------- %%</a></li><li><a href="#4">------------ EXERCISE 3 ------------- %%</a></li></ul></div><pre class="codeinput">clc;
+clear <span class="string">all</span>;
+close <span class="string">all</span>;
+warning(<span class="string">'off'</span>);
+<span class="comment">% in order to avoid warnings in the report / it does not affect</span>
+ <span class="comment">% the working of the code</span>
+</pre><h2>------------ EXERCISE 1 ------------- %%<a name="2"></a></h2><pre class="codeinput"><span class="comment">% ---------- System nitialization ----------</span>
+
+A=[0.7115  -0.4345;
+   0.4345   0.8853];
+B=[0.2173;
+   0.0573];
+Bd=[0;0];
+
+C=[0 1];
+Cd=1;
+
+x0=[1;2];
+x0_=[3;0];
+d0=0.2;
+d0_=0;
+u=0;
+
+<span class="comment">% ---------- Variables initializations ----------</span>
+
+pN = 100;           <span class="comment">% number of points to be computed</span>
+
+x = zeros(2,pN);    <span class="comment">% state</span>
+x(:,1) = x0;
+x_ = zeros(2,pN);   <span class="comment">% state estimate</span>
+x_(:,1) = x0_;
+
+errX = zeros(1,pN); <span class="comment">% state error</span>
+errX(1)=sqrt((x0(1)-x0_(1))*(x0(1)-x0_(1))+(x0(2)-x0_(2))*(x0(2)-x0_(2)));
+
+d = d0;             <span class="comment">% disturbance</span>
+d_ = zeros(1,pN);   <span class="comment">% disturbance estimate</span>
+d_(1) = d0_;
+
+y = zeros(1,pN);    <span class="comment">% augmented model</span>
+y_ = zeros(1,pN);
+
+<span class="comment">% Choosing L such that the error dynamics are stable and converge to zero</span>
+L = (place([A Bd; 0 0 1]', -[C'; Cd],[0.5;0.6;0.7]))';
+Lx = L(1:2);
+Ld = L(3);
+
+<span class="comment">% ---------- Disturbance estimator based on augmented model ----------</span>
+
+<span class="keyword">for</span> i=1:pN-1
+    y(i) = C*x(:,i)+Cd*d;
+    y_(i) = C*x_(:,i)+Cd*d_(i);
+    x_(:,i+1) = [A Bd]*[x_(:,i);d_(i)] + B*u + Lx*(C*x_(:,i)+Cd*d_(i)-y(i));
+    d_(i+1) = [0 0 1]*[x_(:,i);d_(i)] + Ld*(C*x_(:,i)+Cd*d_(:,i)-y(i));
+    x(:,i+1) = A*x(:,i);
+    errX(i+1)=sqrt((x(1,i+1)-x_(1,i+1))*(x(1,i+1)-x_(1,i+1))+(x(2,i+1)-x_(2,i+1))*(x(2,i+1)-x_(2,i+1)));
+<span class="keyword">end</span>;
+y(pN) = C*x(:,pN)+Cd*d;
+y_(pN) = C*x_(:,pN)+Cd*d_(pN);
+
+<span class="comment">% ---------- Plotting results ----------</span>
+
+figure();
+hold <span class="string">on</span>;
+plot(x(1,:),x(2,:),<span class="string">'r'</span>);
+plot(x_(1,:),x_(2,:),<span class="string">'b--'</span>);
+xlabel(<span class="string">'x1'</span>);
+ylabel(<span class="string">'x2'</span>);
+legend(<span class="string">'Real state'</span>,<span class="string">'Estimated state'</span>);
+title(<span class="string">'Oberver design: Convergence of the state variable'</span>);
+
+figure();
+hold <span class="string">on</span>;
+plot(y(:),<span class="string">'r'</span>);
+plot(y_(:),<span class="string">'b--'</span>);
+xlabel(<span class="string">'Time step'</span>);
+ylabel(<span class="string">'Measurement value'</span>);
+legend(<span class="string">'Real measurement'</span>,<span class="string">'Estimated measurement'</span>);
+title(<span class="string">'Oberver design: Convergence of the measurement variable'</span>);
+
+timeStep=linspace(0,pN-1,pN);
+figure;
+hold <span class="string">on</span>;
+plot(timeStep,errX,<span class="string">'k'</span>);
+plot(timeStep,d*ones(1,pN),<span class="string">'r'</span>);
+plot(timeStep,d_,<span class="string">'b--'</span>);
+xlabel(<span class="string">'time step'</span>);
+ylabel(<span class="string">'Mesurement value'</span>);
+legend(<span class="string">'State error'</span>,<span class="string">'Real disturbance'</span>,<span class="string">'Estimated disturbance'</span>);
+title(<span class="string">'Oberver design: Convergence of the disturbance variable And state error'</span>);
+</pre><img vspace="5" hspace="5" src="ex5_01.png" alt=""> <img vspace="5" hspace="5" src="ex5_02.png" alt=""> <img vspace="5" hspace="5" src="ex5_03.png" alt=""> <h2>------------ EXERCISE 2 ------------- %%<a name="3"></a></h2><pre class="codeinput">u=0;
+ku = [3; 3];
+Hu = [1; -1];
+d_ = d;
+
+<span class="comment">% YALMIP</span>
+Rs = 1;
+
+r = 1;
+<span class="comment">%r = 0.5;</span>
+
+<span class="comment">% Define optimization variables</span>
+xs = sdpvar(2,1);
+us = sdpvar(1,1);
+<span class="comment">% Define constraints and objective</span>
+con = [[eye(2)-A -B; C 0]*[xs; us]==[Bd*d_; r-Cd*d_], Hu*us&lt;=ku];
+obj = us*Rs*us; <span class="comment">% Terminal weight</span>
+<span class="comment">% Defining the optimizer</span>
+ops = sdpsettings(<span class="string">'solver'</span>,<span class="string">'quadprog'</span>,<span class="string">'verbose'</span>,0); <span class="comment">% choosing the solver</span>
+<span class="comment">% We saw that the results of the optimazation depends a lot on the choice</span>
+<span class="comment">% of the solver</span>
+diagnosis = solvesdp(con, obj, ops);
+xs = double(xs)
+us = double(us)
+</pre><pre class="codeoutput">
+xs =
+
+    0.0002
+    0.8000
+
+
+us =
+
+    1.5999
+
+</pre><h2>------------ EXERCISE 3 ------------- %%<a name="4"></a></h2><pre class="codeinput"><span class="comment">% ---------- Initialization ----------</span>
+r = 1;
+<span class="comment">%r = 0.5;</span>
+<span class="comment">% The stage costs</span>
+Q = eye(2);
+R = 1;
+<span class="comment">% The horizon</span>
+N = 5;
+P = dlyap(A,Q);
+
+pN3 = 50;
+x = zeros(2,pN3);
+x(:,1) = x0;
+x_ = zeros(2,pN3);
+d = d0;
+d_ = zeros(1,pN3);
+y = zeros(1,pN3);
+u = zeros(1,pN3);
+
+
+<span class="comment">% Defining the optimizer for MPC</span>
+opsMPC = sdpsettings(<span class="string">'solver'</span>,<span class="string">'sedumi'</span>,<span class="string">'verbose'</span>,0);
+<span class="comment">% Define optimization variables for MPC</span>
+delZMPC = sdpvar(2,N,<span class="string">'full'</span>);
+delUMPC = sdpvar(1,N-1,<span class="string">'full'</span>);
+x0MPC = sdpvar(2,1,<span class="string">'full'</span>);
+<span class="comment">% Define the cost function for MPC</span>
+objMPC = 0;
+<span class="keyword">for</span> i = 1:N-1
+    objMPC = objMPC + delZMPC(:,i)'*Q*delZMPC(:,i) + delUMPC(:,i)'*R*delUMPC(:,i);
+<span class="keyword">end</span>
+objMPC = objMPC + delZMPC(:,N)'*P*delZMPC(:,N); <span class="comment">% Terminal weight</span>
+
+
+
+<span class="keyword">for</span> i=1:pN3
+    <span class="keyword">if</span> i == 1 <span class="comment">% First step: Initialization</span>
+        x_(:,i) = x0_;
+        d_(i) = d0_;
+        y_(i) = C*x_(:,i)+Cd*d_(i);
+    <span class="keyword">else</span>
+        <span class="comment">% Estimate the system's state, disturbance and measurment</span>
+        x_(:,i) = [A Bd]*[x_(:,i-1);d_(i-1)] + B*u(i-1) + Lx*(C*x_(:,i-1)+Cd*d_(i-1)-y(i-1));
+        d_(i) = [0 0 1]*[x_(:,i-1);d_(i-1)] + Ld*(C*x_(:,i-1)+Cd*d_(:,i-1)-y(i-1));
+        y_(i) = C*x_(:,i)+Cd*d_(i);
+    <span class="keyword">end</span>
+    <span class="comment">% Obtain (xs,us) using disturbance estimate</span>
+    <span class="comment">% Define optimization variables for steady-state identification</span>
+    <span class="comment">% Define optimization variables</span>
+    xs = sdpvar(2,1);
+    us = sdpvar(1,1);
+    <span class="comment">% Define constraints and objective for steady-state identification</span>
+    con = [[eye(2)-A -B; C 0]*[xs; us]==[Bd*d_(i); r-Cd*d_(i)], Hu*us&lt;=ku];
+    obj = us*Rs*us; <span class="comment">% Terminal weight</span>
+    <span class="comment">% Defining the optimizer for steady-state identification</span>
+    ops = sdpsettings(<span class="string">'solver'</span>,<span class="string">'quadprog'</span>,<span class="string">'verbose'</span>,0);
+    con = [[eye(2)-A -B; C 0]*[xs; us]==[Bd*d_(i); r-Cd*d_(i)], Hu*us&lt;=ku];
+    sol = solvesdp(con, obj, ops);
+    <span class="keyword">if</span> sol.problem == 1
+        brake;
+    <span class="keyword">end</span>
+    xs = double(xs);
+    us = double(us);
+    <span class="comment">% Initiating the state for the controller</span>
+    delX_ = x_(:,i)-xs;
+
+
+    <span class="comment">% ---- Solve the MPC problem for tracking ----</span>
+    <span class="comment">% Define constraints</span>
+    conMPC = [];
+    conMPC = [conMPC, delZMPC(:,1) == x0MPC];
+    <span class="keyword">for</span> j = 1:N-1
+        conMPC = [conMPC, delZMPC(:,j+1) == A*delZMPC(:,j) + B*delUMPC(:,j)]; <span class="comment">% System dynamics</span>
+        conMPC = [conMPC, Hu*delUMPC(:,j) &lt;= ku - Hu*us]; <span class="comment">% Input constraints</span>
+    <span class="keyword">end</span>
+    conMPC = [conMPC, isreal(delZMPC(:,N))]; <span class="comment">% Terminal constraint</span>
+    ctrl = optimizer(conMPC, objMPC, opsMPC, x0MPC, delUMPC(:,1));
+    [uopt,unfeasible] = ctrl{x(:,i)};
+    <span class="keyword">if</span> unfeasible
+        disp(<span class="string">'The initial position is unfeasible'</span>)
+        <span class="keyword">break</span>;
+    <span class="keyword">end</span>
+    u(i) = uopt+us;
+
+    <span class="comment">% run the system</span>
+    <span class="keyword">if</span> i&lt;pN
+        x(:,i+1) = A*x(:,i)+B*u(i)+Bd*d;
+        y(i+1) = C*x(:,i+1)+Cd*d;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">% ---------- Plotting ----------</span>
+figure;
+xlabel(<span class="string">'x1'</span>);
+ylabel(<span class="string">'x2'</span>);
+title(<span class="string">'Optimal trajectory using YALMIP'</span>);
+hold <span class="string">on</span>;
+plot(x(1,:),x(2,:), <span class="string">'color'</span>,<span class="string">'k'</span>);
+
+figure;
+xlabel(<span class="string">'Time step'</span>);
+ylabel(<span class="string">'y'</span>);
+title(<span class="string">'The convergence of y to r'</span>);
+hold <span class="string">on</span>;
+plot(y,<span class="string">'g'</span>);
+
+timeStep3=linspace(0,pN3-1,pN3)
+figure;
+xlabel(<span class="string">'Time step'</span>);
+ylabel(<span class="string">'u'</span>)
+title(<span class="string">'Input respecting the constraints'</span>);
+hold <span class="string">on</span>;
+plot(timeStep3,3,<span class="string">'r-'</span>);
+plot(timeStep3,-3,<span class="string">'r-'</span>);
+plot(u,<span class="string">'g'</span>);
+</pre><pre class="codeoutput">
+timeStep3 =
+
+  Columns 1 through 13
+
+     0     1     2     3     4     5     6     7     8     9    10    11    12
+
+  Columns 14 through 26
+
+    13    14    15    16    17    18    19    20    21    22    23    24    25
+
+  Columns 27 through 39
+
+    26    27    28    29    30    31    32    33    34    35    36    37    38
+
+  Columns 40 through 50
+
+    39    40    41    42    43    44    45    46    47    48    49
+
+</pre><img vspace="5" hspace="5" src="ex5_04.png" alt=""> <img vspace="5" hspace="5" src="ex5_05.png" alt=""> <img vspace="5" hspace="5" src="ex5_06.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2013b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+clc;
+clear all;
+close all;
+warning('off'); 
+% in order to avoid warnings in the report / it does not affect
+ % the working of the code
+
+%% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH EXERCISE 1 REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH- %%
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH System nitialization REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+A=[0.7115  -0.4345;
+   0.4345   0.8853];
+B=[0.2173;
+   0.0573];
+Bd=[0;0];
+
+C=[0 1];
+Cd=1;
+
+x0=[1;2];
+x0_=[3;0];
+d0=0.2;
+d0_=0;
+u=0;
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH Variables initializations REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+pN = 100;           % number of points to be computed
+
+x = zeros(2,pN);    % state
+x(:,1) = x0;    
+x_ = zeros(2,pN);   % state estimate
+x_(:,1) = x0_;  
+
+errX = zeros(1,pN); % state error
+errX(1)=sqrt((x0(1)-x0_(1))*(x0(1)-x0_(1))+(x0(2)-x0_(2))*(x0(2)-x0_(2)));
+
+d = d0;             % disturbance
+d_ = zeros(1,pN);   % disturbance estimate
+d_(1) = d0_;
+
+y = zeros(1,pN);    % augmented model
+y_ = zeros(1,pN);
+
+% Choosing L such that the error dynamics are stable and converge to zero
+L = (place([A Bd; 0 0 1]', -[C'; Cd],[0.5;0.6;0.7]))';
+Lx = L(1:2);
+Ld = L(3);
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH Disturbance estimator based on augmented model REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+for i=1:pN-1
+    y(i) = C*x(:,i)+Cd*d;
+    y_(i) = C*x_(:,i)+Cd*d_(i);
+    x_(:,i+1) = [A Bd]*[x_(:,i);d_(i)] + B*u + Lx*(C*x_(:,i)+Cd*d_(i)-y(i));
+    d_(i+1) = [0 0 1]*[x_(:,i);d_(i)] + Ld*(C*x_(:,i)+Cd*d_(:,i)-y(i));
+    x(:,i+1) = A*x(:,i);
+    errX(i+1)=sqrt((x(1,i+1)-x_(1,i+1))*(x(1,i+1)-x_(1,i+1))+(x(2,i+1)-x_(2,i+1))*(x(2,i+1)-x_(2,i+1)));
+end;
+y(pN) = C*x(:,pN)+Cd*d;
+y_(pN) = C*x_(:,pN)+Cd*d_(pN);
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH Plotting results REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+figure();
+hold on;
+plot(x(1,:),x(2,:),'r');
+plot(x_(1,:),x_(2,:),'bREPLACE_WITH_DASH_DASH');
+xlabel('x1');
+ylabel('x2');
+legend('Real state','Estimated state');
+title('Oberver design: Convergence of the state variable');
+
+figure();
+hold on;
+plot(y(:),'r');
+plot(y_(:),'bREPLACE_WITH_DASH_DASH');
+xlabel('Time step');
+ylabel('Measurement value');
+legend('Real measurement','Estimated measurement');
+title('Oberver design: Convergence of the measurement variable');
+
+timeStep=linspace(0,pN-1,pN);
+figure;
+hold on;
+plot(timeStep,errX,'k');
+plot(timeStep,d*ones(1,pN),'r');
+plot(timeStep,d_,'bREPLACE_WITH_DASH_DASH');
+xlabel('time step');
+ylabel('Mesurement value');
+legend('State error','Real disturbance','Estimated disturbance');
+title('Oberver design: Convergence of the disturbance variable And state error');
+
+
+%% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH EXERCISE 2 REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH- %%
+
+u=0;
+ku = [3; 3];
+Hu = [1; -1];
+d_ = d;
+
+% YALMIP
+Rs = 1;
+
+r = 1;
+%r = 0.5;
+
+% Define optimization variables
+xs = sdpvar(2,1);
+us = sdpvar(1,1);
+% Define constraints and objective
+con = [[eye(2)-A -B; C 0]*[xs; us]==[Bd*d_; r-Cd*d_], Hu*us<=ku];
+obj = us*Rs*us; % Terminal weight
+% Defining the optimizer
+ops = sdpsettings('solver','quadprog','verbose',0); % choosing the solver
+% We saw that the results of the optimazation depends a lot on the choice
+% of the solver
+diagnosis = solvesdp(con, obj, ops);
+xs = double(xs)
+us = double(us)
+
+%% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH EXERCISE 3 REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH- %%
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH Initialization REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+r = 1;
+%r = 0.5;
+% The stage costs 
+Q = eye(2);
+R = 1;
+% The horizon
+N = 5;
+P = dlyap(A,Q);
+
+pN3 = 50;
+x = zeros(2,pN3);
+x(:,1) = x0;
+x_ = zeros(2,pN3);
+d = d0;
+d_ = zeros(1,pN3);
+y = zeros(1,pN3);
+u = zeros(1,pN3);
+
+
+% Defining the optimizer for MPC
+opsMPC = sdpsettings('solver','sedumi','verbose',0);
+% Define optimization variables for MPC
+delZMPC = sdpvar(2,N,'full');
+delUMPC = sdpvar(1,N-1,'full');
+x0MPC = sdpvar(2,1,'full');
+% Define the cost function for MPC
+objMPC = 0;
+for i = 1:N-1
+    objMPC = objMPC + delZMPC(:,i)'*Q*delZMPC(:,i) + delUMPC(:,i)'*R*delUMPC(:,i);
+end
+objMPC = objMPC + delZMPC(:,N)'*P*delZMPC(:,N); % Terminal weight
+
+
+
+for i=1:pN3
+    if i == 1 % First step: Initialization
+        x_(:,i) = x0_;
+        d_(i) = d0_;
+        y_(i) = C*x_(:,i)+Cd*d_(i);
+    else
+        % Estimate the system's state, disturbance and measurment
+        x_(:,i) = [A Bd]*[x_(:,i-1);d_(i-1)] + B*u(i-1) + Lx*(C*x_(:,i-1)+Cd*d_(i-1)-y(i-1));
+        d_(i) = [0 0 1]*[x_(:,i-1);d_(i-1)] + Ld*(C*x_(:,i-1)+Cd*d_(:,i-1)-y(i-1));
+        y_(i) = C*x_(:,i)+Cd*d_(i);
+    end
+    % Obtain (xs,us) using disturbance estimate
+    % Define optimization variables for steady-state identification
+    % Define optimization variables
+    xs = sdpvar(2,1);
+    us = sdpvar(1,1);
+    % Define constraints and objective for steady-state identification
+    con = [[eye(2)-A -B; C 0]*[xs; us]==[Bd*d_(i); r-Cd*d_(i)], Hu*us<=ku];
+    obj = us*Rs*us; % Terminal weight
+    % Defining the optimizer for steady-state identification
+    ops = sdpsettings('solver','quadprog','verbose',0);
+    con = [[eye(2)-A -B; C 0]*[xs; us]==[Bd*d_(i); r-Cd*d_(i)], Hu*us<=ku];
+    sol = solvesdp(con, obj, ops);
+    if sol.problem == 1
+        brake;
+    end
+    xs = double(xs);
+    us = double(us);
+    % Initiating the state for the controller
+    delX_ = x_(:,i)-xs;
+    
+    
+    % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH Solve the MPC problem for tracking REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+    % Define constraints
+    conMPC = [];
+    conMPC = [conMPC, delZMPC(:,1) == x0MPC];
+    for j = 1:N-1      
+        conMPC = [conMPC, delZMPC(:,j+1) == A*delZMPC(:,j) + B*delUMPC(:,j)]; % System dynamics
+        conMPC = [conMPC, Hu*delUMPC(:,j) <= ku - Hu*us]; % Input constraints
+    end
+    conMPC = [conMPC, isreal(delZMPC(:,N))]; % Terminal constraint
+    ctrl = optimizer(conMPC, objMPC, opsMPC, x0MPC, delUMPC(:,1));
+    [uopt,unfeasible] = ctrl{x(:,i)};
+    if unfeasible
+        disp('The initial position is unfeasible')
+        break;
+    end
+    u(i) = uopt+us;
+    
+    % run the system
+    if i<pN
+        x(:,i+1) = A*x(:,i)+B*u(i)+Bd*d;
+        y(i+1) = C*x(:,i+1)+Cd*d;
+    end
+end
+
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH Plotting REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+figure;
+xlabel('x1');
+ylabel('x2');
+title('Optimal trajectory using YALMIP');
+hold on;
+plot(x(1,:),x(2,:), 'color','k');
+
+figure;
+xlabel('Time step');
+ylabel('y');
+title('The convergence of y to r');
+hold on;
+plot(y,'g');
+
+timeStep3=linspace(0,pN3-1,pN3)
+figure;
+xlabel('Time step');
+ylabel('u')
+title('Input respecting the constraints');
+hold on;
+plot(timeStep3,3,'r-');
+plot(timeStep3,-3,'r-');
+plot(u,'g');
+##### SOURCE END #####
+--></body></html>
