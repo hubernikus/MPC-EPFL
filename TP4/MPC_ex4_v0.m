@@ -118,7 +118,8 @@ M = [1; -1];            %Input constraint
 % Define optimization variables
 x = sdpvar(2,N,'full');
 u = sdpvar(1,N,'full');
-  % Define constraints and objective
+
+% Define constraints and objective
 con = [];
 obj = 0;
 con = [con, x(:,1) == x0];
@@ -129,7 +130,7 @@ for i = 1:N-1
     obj = obj + x(:,i)'*Q*x(:,i) + u(:,i)'*R*u(:,i); % Cost function
 end
 
-con = [con, Ff*x(:,N) <= ff];       % Terminal constraint
+%con = [con, Ff*x(:,N) <= ff];       % Terminal constraint
 obj = obj + x(:,N)'*Qf*x(:,N);      % Terminal weight
 
 % Compile the matrices

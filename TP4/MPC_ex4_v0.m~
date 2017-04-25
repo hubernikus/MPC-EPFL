@@ -121,7 +121,7 @@ u = sdpvar(1,N,'full');
   % Define constraints and objective
 con = [];
 obj = 0;
-con = [x(:,1) = x0;
+con = [con, x(:,1) == x0];
 for i = 1:N-1      
     con = [con, x(:,i+1) == A*x(:,i) + B*u(:,i)]; % System dynamics
     con = [con, F*x(:,i) <= f];                   % State constraints
