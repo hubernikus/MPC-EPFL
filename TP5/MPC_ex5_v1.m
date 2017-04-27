@@ -62,3 +62,5 @@ obs = optimizer(con, obj, opt, x(:,1), u(:,1));
 
 
 %% Exercise 2 - 
+
+
