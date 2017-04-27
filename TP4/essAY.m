@@ -71,51 +71,33 @@ G = blkdiag(kron(eye(N-1),[1 0; -1 0; 0 1; 0 -1]),Ff, ...
 T = [eye(N*dimX) + kron(diag(ones(1,N-1),-1),-A),  kron(diag(ones(1,N)),B)];
 t = [A; zeros(dimX*(N-1),dimX)];
 
-
+t=t*x0;
 options=optimoptions('quadprog','ConstraintTolerance',1e-2);
-x1=x0(1,1);
-x2=x0(2,1);
-u=[];
-time=1;
-i=1;
-while sum(Ff*x0>ff)>0
-tnew=t*x0;
-[zopt, fval, flag] = quadprog(H, h, G, g, T, tnew,[],[],x0,options);
-x1=[x1;zopt(1)];
-x2=[x2;zopt(2)];
-u=[u,zopt(2*N+1)];
-x0=[zopt(1);zopt(2)];
-i=i+1;
-time=[time,i];
-end
+
+[zopt, fval, flag] = quadprog(H, h, G, g, T, t,[],[],x0,options);
+
+
+
 % Get and plot optimal trajectory data
 
-% t_horizon=[1:N];
- x1_pred=zopt(3:2:2*(N));
- x2_pred=zopt(4:2:2*(N));
-% u=zopt(2*N+1:length(zopt));
+t_horizon=[1:N];
+x1=zopt(1:2:2*(N));
+x2=zopt(2:2:2*(N));
+u=zopt(2*N+1:length(zopt));
 
 h_bound=[sys.x.max;sys.x.max];
 H_bound=[1 0;0 1;-1 0;0 -1 ];
 P=Polyhedron([H_bound],[h_bound]);
 
-h_bound2=[ff];
-H_bound2=[Ff];
-P2=Polyhedron([H_bound2],[h_bound2]);
-
 % Check if state always lies inside boundaries
 figure
-
 P.plot
 hold on
-P2.plot
-hold on
 scatter(x1,x2,'b','*');
-scatter(x1_pred,x2_pred,'g','*');
 
 % Check if input always lies inside boundaries
 figure
-plot(time(1:(length(time)-1)),u,'r');
+plot(t_horizon,u,'r');
 refline(0,1.75)
 refline(0,-1.75)
 
@@ -148,7 +130,7 @@ for i = 1:N-1
     obj = obj + x(:,i)'*Q*x(:,i) + u(:,i)'*R*u(:,i); % Cost function
 end
 
-con = [con, Ff*x(:,N) <= ff];       % Terminal constraint
+%con = [con, Ff*x(:,N) <= ff];       % Terminal constraint
 obj = obj + x(:,N)'*Qf*x(:,N);      % Terminal weight
 
 % Compile the matrices

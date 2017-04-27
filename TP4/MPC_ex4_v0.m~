@@ -15,7 +15,9 @@ addpath(genpath('../tbxmanager'))
 %% Exercise 1
 clc; 
 
-A = [0.9752, 1.4544; -0.0327, 0.9315];   B = [0.0248; 0.0327];
+A = [0.9752, 1.4544; -0.0327, 0.9315];   
+B = [0.0248; 0.0327];
+x0=[3;0];
 
 dimX = size(A,1);
 dimU = size(B,2);
@@ -24,7 +26,6 @@ Q = [10 0; 0 10];
 R = [1];
 
 f_nat = 0.15; % [r/s] Natural frquency
-
 discRate = 1.5; % [r/s] Discretization rate applied
 
 xi = 0.1; % Dampin Ratio
@@ -70,35 +71,46 @@ G = blkdiag(kron(eye(N-1),[1 0; -1 0; 0 1; 0 -1]),Ff, ...
 T = [eye(N*dimX) + kron(diag(ones(1,N-1),-1),-A),  kron(diag(ones(1,N)),B)];
 t = [A; zeros(dimX*(N-1),dimX)];
 
-x0=[3;0];
-t=t*x0;
+
 options=optimoptions('quadprog','ConstraintTolerance',1e-2);
-
-[zopt, fval, flag] = quadprog(H, h, G, g, T, t,[],[],x0,options);
-
-
-
+x1=x0(1,1);
+x2=x0(2,1);
+u=[];
+time=1;
+i=1;
+while sum(Ff*x0>ff)>0
+tnew=t*x0;
+[zopt, fval, flag] = quadprog(H, h, G, g, T, tnew,[],[],x0,options);
+x1=[x1;zopt(1)];
+x2=[x2;zopt(2)];
+u=[u,zopt(2*N+1)];
+x0=[zopt(1);zopt(2)];
+i=i+1;
+time=[time,i];
+end
 % Get and plot optimal trajectory data
 
-t_horizon=[1:N];
-
-x1=zopt(1:2:2*N);
-x2=zopt(2:2:2*N);
-u=zopt(2*N+1:length(zopt));
+% t_horizon=[1:N];
+ x1_pred=zopt(3:2:2*(N));
+ x2_pred=zopt(4:2:2*(N));
+% u=zopt(2*N+1:length(zopt));
 
 h_bound=[sys.x.max;sys.x.max];
 H_bound=[1 0;0 1;-1 0;0 -1 ];
 P=Polyhedron([H_bound],[h_bound]);
+
+h_bound2=[]
 
 % Check if state always lies inside boundaries
 figure
 P.plot
 hold on
 scatter(x1,x2,'b','*');
+scatter(x1_pred,x2_pred,'g','*');
 
 % Check if input always lies inside boundaries
 figure
-plot(t_horizon,u,'r');
+plot(time(1:(length(time)-1)),u,'r');
 refline(0,1.75)
 refline(0,-1.75)
 
@@ -107,26 +119,39 @@ refline(0,-1.75)
 %/!\ How is the sytem supposed to change with u and x?
 
 %% Exercise 2
+% Parameter Definition
+F = [ 1  0;             %State constraint
+     -1  0;
+      0  1;
+      0 -1];
+f = [5; 5; 0.2; 0.2];   %State constraint
+m = [1.75; 1.75];       %Input constraint
+M = [1; -1];            %Input constraint
 
- % Define optimization variables
-  x = sdpvar(2,N,'full');
-  u = sdpvar(1,N,'full');
-  % Define constraints and objective
+% Define optimization variables
+x = sdpvar(2,N,'full');
+u = sdpvar(1,N,'full');
+
+% Define constraints and objective
 con = [];
 obj = 0;
-for i = 1:N-1
-    con = con + set(x(:,i+1) == A*x(:,i) + B*u(:,i)); % System dynamics
-    con = con + set(F*x(:,i) <= f);                   % State constraints
-    con = con + set(M*u(:,i) <= m);                   % Input constraints
-    obj = obj + x(:,i)'*Q*x(:,i) + u(:,i)'*R*u(:,i);  % Cost function
+con = [con, x(:,1) == x0];
+for i = 1:N-1      
+    con = [con, x(:,i+1) == A*x(:,i) + B*u(:,i)]; % System dynamics
+    con = [con, F*x(:,i) <= f];                   % State constraints
+    con = [con, M*u(:,i) <= m];                   % Input constraints
+    obj = obj + x(:,i)'*Q*x(:,i) + u(:,i)'*R*u(:,i); % Cost function
 end
-  con = con + set(Ff*x(:,N) <= ff); % Terminal constraint
-  obj = obj + x(:,N)'*Qf*x(:,N);    % Terminal weight
-  % Compile the matrices
-  ctrl = optimizer(con, obj, [], x(:,1), u(:,1));
-  % Can now compute the optimal control input using
-  [uopt,isfeasible] = ctrl{x0}
-  % isfeasible == 1 if the problem was solved successfully
+
+con = [con, Ff*x(:,N) <= ff];       % Terminal constraint
+obj = obj + x(:,N)'*Qf*x(:,N);      % Terminal weight
+
+% Compile the matrices
+opt = sdpsettings('solver','sedumi','verbose',0); % choosing the solver
+ctrl = optimizer(con, obj, opt, x(:,1), u(:,1));
+% Can now compute the optimal control input using
+[uopt,isfeasible] = ctrl{x0}
+% isfeasible == 1 if the problem was solved successfully
 
 
 
