@@ -12,12 +12,42 @@ addpath(genpath('../tbxmanager'))
 
 %% System initialization
 close all;
-
-A = [0.7115, -0.4345; 0.4345, 0.8853]:
+clear all;
+A = [0.7115, -0.4345; 0.4345, 0.8853];
 B = [0.2173; 0.0573];
 
 C = [0, 1];
 %D = d
+B_d=zeros(2,1);
+C_d=[1];
+A_er=[A,B_d;zeros(1,2),1];
+C_er=[C, 1];
+L=(place(A_er',-C_er',[0.1,0.2,0.3]))';
+% System dynamics with estimated ..
+x=[3;0;0];
+y=[0];
+for i=2:50
+   
+   x(:,i)= A_er*x(:,i-1)+L*((C_er*x(:,i-1))-y(i-1));
+   y(i)=C*x([1,2],i)+x(3,i);
+    
+end
+
+%True system dynamics
+x_r=[3;0];
+d_r=12000000;
+y_r=[0];
+
+for i=2:50
+   x_r(:,i)= A*x_r(:,i-1);
+   y_r(i)=C*x_r(:,i)+d_r;
+    
+end
+figure
+hold on
+scatter(x_r(1,:),x_r(2,:),'*');
+scatter(x(1,:),x(2,:));
+
 
 %% Exercise 1 - Observer Design
 x0 = [1;2];
