@@ -15,10 +15,11 @@ close all;
 
 A = [0.7115, -0.4345; 0.4345, 0.8853]:
 B = [0.2173; 0.0573];
-
+    
 C = [0, 1];
 %D = d
 
+A_err = 
 %% Exercise 1 - Observer Design
 x0 = [1;2];
 x0_hat = [3;0]; % Estimate of x0
