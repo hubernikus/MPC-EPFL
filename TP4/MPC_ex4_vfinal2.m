@@ -50,7 +50,7 @@ Ff=LQRSet.A;
 ff=LQRSet.b;
 Qf=LQRPenalty;  
 
-%% Exercise 1: Impelement MPC
+% Exercise 1: Impelement MPC
 close all; 
 
 % Optimization
@@ -110,7 +110,7 @@ H_bound2=[Ff];
 P2=Polyhedron([H_bound2],[h_bound2]);
 
 % Check if state always lies inside boundaries
-figure('Position',[0 0 1000 600]);
+h=figure
 P.plot; hold on;
 P2.plot('color',[0.5 0.5 0.7])
 scatter(x1,x2,'b','*');
@@ -118,7 +118,16 @@ scatter(x1_pred,x2_pred,'g','*');
 xlabel('x1'); ylabel('x2')
 legend('Constraint on state','LQR invariant set','Simulation using MPC', ...
             'Prediction from inside the LQR set')
-        
+title('R=10 and Q=10*eye(2)')
+
+% set(h,'Units','Inches');
+% pos = get(h,'Position');
+% set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+% print(h,'filename','-dpdf','-r0')
+
+
+
+
 % The system respects the boundries for state constraints as well as input
 % constraints. As the optimal solution is chosen, the optimal path is at
 % the limit of the feasible set. This might lead to problem in the case of
@@ -134,7 +143,7 @@ legend('Constraint on state','LQR invariant set','Simulation using MPC', ...
 % decreases the the initial feasable set since the input constraints are going to 
 % be met at lower values of x. When we raise R than we are in the opposite
 % case the states cost are smaller than the input cost in the LQR
-% optimisation problem. This will yield in a less agressive controller with
+% optimisation problem. This will result in a less agressive controller with
 % a lower gain. The maximum control invariant set gets bigger when we raise
 % R. The trajectories change only slightly in both cases.
 
