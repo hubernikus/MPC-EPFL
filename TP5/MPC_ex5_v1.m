@@ -29,6 +29,16 @@ C_augm = [C, 1];
 L = (place(A_augm',-C_augm',[0.5,0.6,0.7]))'; % Why positiv?!
 
 
+% Initial Estimation
+x0_est = [3;0];
+d_est = [0];
+
+%Initial Conditions - Real system
+x0_r = [2;1];
+d_r = 0.2;
+
+
+
 %% Exercise 1 - Observer Design
 close all;
 
@@ -114,18 +124,14 @@ opt.quadprog.TolCon = 1e-16;
  %opt = sdpsettings('solver','sedumi','verbose',0); % choosing the solver
 ctrl = optimizer(con, obj, opt, x(:,1), u_r(:,1));
 
-% Initial Estimation
-x0_est = [3;0];
-d_est = [0];
 
+% Initial conditions
 xi = x0_est; % try to controll estimation
 
 xd_est = [x0_est; d_est]
 y_est = [C*xd_est(1:2,1)+d_est]; 
 
-%Initial Conditions - Real system
-x0_r = [2;1];
-d_r = 0.2;
+% Real conditions
 y_r = [0];
 u_r = [0];
 
