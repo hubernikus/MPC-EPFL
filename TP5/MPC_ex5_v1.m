@@ -53,7 +53,7 @@ legend('Error x_1','Error x_2', 'Error d')
 
 
 %% Exercise 3 - Controller Design
-
+close all;
 %%%% TODO! P etc.
 
 
@@ -170,7 +170,7 @@ end
 %x_val = [x_val, xi]; % save current values 
 %t_val = [t_val, i];
 
-%%
+%
 close all;
 
 figure('Position',[0 0 1000 600]);
@@ -213,3 +213,5 @@ legend('y','y_r')
 
 
 
+%% 
+fprintf('Programm terminated. \n')
