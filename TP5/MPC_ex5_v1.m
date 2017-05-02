@@ -156,9 +156,9 @@ for i = 2:MAXITER
     y_r(i) = C*x_r(:,1)+d_r;
         
     % Estimated system
-        xdA= A_augm*xd_est(:,i-1)
-    xdB = B_augm*u_opt
-    xdL = L*(C*xd_est(1:2,i-1) + C_d*u_opt - y_r(i-1))
+%    xdA= A_augm*xd_est(:,i-1)
+%    xdB = B_augm*u_opt
+%    xdL = L*(C*xd_est(1:2,i-1) + C_d*u_opt - y_r(i-1))
     xd_est(:,i) = [A_augm*xd_est(:,i-1)+B_augm*u_opt ...
                   + L*(C*xd_est(1:2,i-1) + C_d*u_opt - y_r(i-1))];
 
@@ -203,19 +203,19 @@ close all;
 %    
 % end
 
-figure('Position',[0,0,600,800])
-hold on
-plot(x0_r(1,:),x0_r(2,:),'-*');
-plot(x0_est(1,:),x0_est(2,:),'-o');
-xlabel('x_1'),ylabel('x_2')
-legend('System','Estimation')
-print('EstimationX1X2','-dpng')
-
-figure('Position',[0,0,600,800])
-plot([1:length(y)],y,[1:length(y)],y_r)
-xlabel('Step n'), ylabel('y')
-legend('y','y_r')
-% We did not get rid of the disturbance
+% figure('Position',[0,0,600,800])
+% hold on
+% plot(x0_r(1,:),x0_r(2,:),'-*');
+% plot(x0_est(1,:),x0_est(2,:),'-o');
+% xlabel('x_1'),ylabel('x_2')
+% legend('System','Estimation')
+% print('EstimationX1X2','-dpng')
+% 
+% figure('Position',[0,0,600,800])
+% plot([1:length(y)],y,[1:length(y)],y_r)
+% xlabel('Step n'), ylabel('y')
+% legend('y','y_r')
+% % We did not get rid of the disturbance
 
 
 
