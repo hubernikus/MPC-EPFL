@@ -60,7 +60,7 @@ plot(obsError(3,:));
 legend('Error x_1','Error x_2', 'Error d')
 
 %% Exercise 2 - Steady-State Target Problem
-N=1;
+N=10;
 x = sdpvar(2,N,'full');
 u = sdpvar(1,N,'full');
 R_s=1;
@@ -75,11 +75,11 @@ r=1;
 
 %con = [con, x(:,1) == x0];
 con = [];
-obj = 0;
+obj = [];
 
 for i = 1:N
     
-    obj = obj+u(i)*R_s*u(i);
+    obj = [obj,u(i)*R_s*u(i)];
     con = [con, [I-A,-B;C,0]*[x(:,i);u(i)] == [0;0;r]]; % System dynamics
     con = [con, H*u(i) <= h];                           % Input constraint    
 end
