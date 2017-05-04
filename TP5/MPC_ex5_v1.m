@@ -59,7 +59,40 @@ plot(obsError(2,:));
 plot(obsError(3,:)); 
 legend('Error x_1','Error x_2', 'Error d')
 
-%% Exercise 2 - ..
+%% Exercise 2 - Steady-State Target Problem
+
+x = sdpvar(2,1,'full');
+u_r = sdpvar(1,'full');
+R_s=1;
+H=[1 0;0 -1];
+h=[3,3]
+
+% Define constraints and objective
+
+%con = [con, x(:,1) == x0];
+for i = 1:N-1
+    con = [];
+    obj = u_r*R_s*u_r;
+    con = [con, [I-A,-B;C,0]*[x;u_r] == [0;0;r]]; % System dynamics
+    con = [con, H*x <= h];                   % Input constraints
+    
+    opt = sdpsettings;
+    opt.solver = 'quadprog';
+    opt.quadprog.TolCon = 1e-16;
+
+    %opt = sdpsettings('solver','sedumi','verbose',0); % choosing the solver
+    ctrl = optimizer(con, obj, opt, x, u_r);
+
+ 
+end
+% Compile the matrices
+opt = sdpsettings;
+opt.solver = 'quadprog';
+opt.quadprog.TolCon = 1e-16;
+
+ %opt = sdpsettings('solver','sedumi','verbose',0); % choosing the solver
+ctrl = optimizer(con, obj, opt, x(:,1), u_r(:,1));
+
 
 
 %% Exercise 3 - Controller Design
