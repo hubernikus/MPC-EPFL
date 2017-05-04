@@ -59,121 +59,31 @@ plot(obsError(2,:));
 plot(obsError(3,:)); 
 legend('Error x_1','Error x_2', 'Error d')
 
-%% Exercise 2 - Steady-State Target Problem
-N=10;
-x = sdpvar(2,N,'full');
-u = sdpvar(1,N,'full');
-R_s=1;
-H=[1 ; -1];
-h=[3;3];
-I=eye(2);
-r=1;
-% Define constraints and objective
- opt = sdpsettings;
- opt.solver = 'quadprog';
- opt.quadprog.TolCon = 1e-16;
 
-%con = [con, x(:,1) == x0];
-con = [];
-obj = [];
-
-for i = 1:N
-    
-    obj = [obj,u(i)*R_s*u(i)];
-    con = [con, [I-A,-B;C,0]*[x(:,i);u(i)] == [0;0;r]]; % System dynamics
-    con = [con, H*u(i) <= h];                           % Input constraint    
-end
-
-
-ctrl = optimizer(con, obj, opt, x(:,1), u(1));
-
-% Initial conditions
-x0 = [3;0];
-xi=[x0];
-t = [0];
-u_r=[];
-MAXITER = 100; tolX = 1e-8;
-% Can now compute the optimal control input using
-for i = 2:MAXITER
-    [u_opt,infeasible] = ctrl{xi(:,i-1)};
-    
-    u_r(i-1) = u_opt;
-    t(i) = i;
-    
-    % Real sytem
-    xi(:,i) = A*xi(:,i-1) + B*u_opt;
-    y(i) = C*xi(:,i)+d_r;
-
-
-end
 %% Exercise 3 - Controller Design
 close all;
-%%%% TODO! P etc.
+N =5; % Horizon length
 
+% Define optimization variables
+x = sdpvar(2,N,'full');
+u = sdpvar(1,N,'full');
 
 % Constraints
-m = [3; 3];             %Input constraint
-M = [1; -1];            %Input constraint
-
+h = [3; 3];             %Input constraint
+H = [1; -1];            %Input constraint
 
 % Weights Controler that is able to track constant output reference
 Q = eye(size(A,1));
 R = 1;
+I=eye(2);
 
-N =5; % Horizon length
-
-% LQR gain
-sys = LTISystem('A',A,'B',B);
-
-sys.u.min = -m(1);
-sys.u.max = m(2);
-
-sys.x.penalty = QuadFunction(Q);
-sys.u.penalty = QuadFunction(R);
-
-LQRGarin = sys.LQRGain;
-LQRPenalty = sys.LQRPenalty.weight;
-LQRSet = sys.LQRSet;
-Ff=LQRSet.A;
-ff=LQRSet.b;
-Qf=LQRPenalty;  
-
-% for i=2:MAXITER
-%    %u_r(i)= -K*y_r(i-1);
-%    x0_r(:,i)= A*x0_r(:,i-1)+B(i)*u_r(i);
-%    y_r(i)=C*x0_r(:,i)+d_r;
-%    
-% end
-
-% Define optimization variables
-x = sdpvar(2,N,'full');
-u_r = sdpvar(1,N,'full');
-
-% Define constraints and objective
-con = [];
-obj = 0;
-%con = [con, x(:,1) == x0];
-for i = 1:N-1      
-    con = [con, x(:,i+1) == A*x(:,i) + B*u_r(:,i)]; % System dynamics
-    con = [con, M*u_r(:,i) <= m];                   % Input constraints
-    obj = obj + x(:,i)'*Q*x(:,i) + u_r(:,i)'*R*u_r(:,i); % Cost function
-end
-obj = obj + x(:,N)'*Qf*x(:,N);      % Terminal weight
-
-% Compile the matrices
-opt = sdpsettings;
-opt.solver = 'quadprog';
-opt.quadprog.TolCon = 1e-16;
-
- %opt = sdpsettings('solver','sedumi','verbose',0); % choosing the solver
-ctrl = optimizer(con, obj, opt, x(:,1), u_r(:,1));
 
 
 % Initial conditions
 xi = x0_est; % try to controll estimation
-
 xd_est = [x0_est; d_est]
 y_est = [C*xd_est(1:2,1)+d_est]; 
+r=1;
 
 % Real conditions
 y_r = [0];
@@ -182,12 +92,47 @@ u_r = [0];
 x_r = [x0_r];
 y_r = [C*xi+d_r];
 
+% Weight of final cost
+P = dlyap(A,Q);
+
+% Solver settings
+    opt = sdpsettings;
+    opt.solver = 'quadprog';
+    opt.quadprog.TolCon = 1e-16;
 
 t = [0];
 
 MAXITER = 100; tolX = 1e-8;
 % Can now compute the optimal control input using
 for i = 2:MAXITER
+    
+    % Steady state optimisation problem
+    % Define optimization variables
+    x_s = sdpvar(2,1,'full');
+    u_s = sdpvar(1,1,'full');
+    obj_ss = u_s*R*u_s;
+    con_ss =[I-A,-B;C,0]*[x_s;u_s] == [0;0;r-C_d*xd_est(3,i-1)]; % System dynamics
+    con_ss = [con_ss, H*u_s <= h];                       % Input constraint
+    solvesdp(con_ss, obj_ss, opt);
+    x_s=double(x_s);
+    u_s=double(u_s);
+    
+    % Define constraints and objective
+    con = [];
+    obj = 0;
+    %con = [con, x(:,1) == x0];
+    for j = 1:N-1  
+        obj = obj + (x(:,j)-x_s)'*Q*(x(:,j)-x_s) + (u(:,j)-u_s)'*R*(u(:,j)-u_s); % Cost function
+
+        con = [con, x(:,j+1) == A*x(:,j) + B*u(:,j)]; % System dynamics
+        con = [con, H*u(:,j) <= h];                   % Input constraints
+  
+    end
+    
+    obj = obj + (x(:,N)-x_s)'*P*(x(:,N)-x_s);      % Terminal weight
+
+    ctrl = optimizer(con, obj, opt, x(:,1), u(:,1));
+
     [u_opt,infeasible] = ctrl{xi};
     
     if(infeasible); fprintf('Problem infeasible at i=%d \n',i); break; end;
@@ -203,6 +148,7 @@ for i = 2:MAXITER
 %    xdA= A_augm*xd_est(:,i-1)
 %    xdB = B_augm*u_opt
 %    xdL = L*(C*xd_est(1:2,i-1) + C_d*u_opt - y_r(i-1))
+
     xd_est(:,i) = [A_augm*xd_est(:,i-1)+B_augm*u_opt ...
                   + L*(C*xd_est(1:2,i-1) + C_d*u_opt - y_r(i-1))];
 
@@ -220,7 +166,7 @@ end
 %x_val = [x_val, xi]; % save current values 
 %t_val = [t_val, i];
 
-%
+%%
 close all;
 
 figure('Position',[0 0 1000 600]);
@@ -236,30 +182,6 @@ plot(u_r); hold on; grid on;
 plot(y_r);
 legend('u(t)','y(t)')
         
-
-
-%%
-close all;
-%for i=2:MAXITER
-%    %u(i) = 
-%     x0_est(:,i)= A_augm*x0_est(:,i-1)+L*((C*x0_est([1 2],i-1))+C_d*x0_est(3,i-1)-y(i-1));
-%    y(i) = C*x0_est([1,2],i)+C_d*x0_est(3,i);
-%    
-% end
-
-% figure('Position',[0,0,600,800])
-% hold on
-% plot(x0_r(1,:),x0_r(2,:),'-*');
-% plot(x0_est(1,:),x0_est(2,:),'-o');
-% xlabel('x_1'),ylabel('x_2')
-% legend('System','Estimation')
-% print('EstimationX1X2','-dpng')
-% 
-% figure('Position',[0,0,600,800])
-% plot([1:length(y)],y,[1:length(y)],y_r)
-% xlabel('Step n'), ylabel('y')
-% legend('y','y_r')
-% % We did not get rid of the disturbance
 
 
 
