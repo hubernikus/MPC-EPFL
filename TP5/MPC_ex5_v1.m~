@@ -80,7 +80,7 @@ I=eye(2);
 
 % Initial conditions
 xi = x0_est; % try to controll estimation
-xd_est = [x0_est; d_est];
+xd_est = [x0_est; d_est]
 y_est = [C*xd_est(1:2,1)+d_est]; 
 r=0.5;
 
@@ -113,7 +113,7 @@ for i = 2:MAXITER
         == [0;0;r-C_d*xd_est(3,i-1)]; 
     con_ss = [con_ss, H*u_s <= h];              %Input constraint
     solvesdp(con_ss, obj_ss, opt);
-    x_s=double(x_s);                            %Output
+    x_s=double(x_s)                             %Output
     u_s=double(u_s);
     
     % MPC Regulator
@@ -154,7 +154,7 @@ for i = 2:MAXITER
     
     xi = xd_est(1:2,i);
                 
-    % Check for convergence    
+    % Check     
     if(norm(abs(y_r(i)-r)) < tolX);
         fprintf('System converged at after %d steps. \n',i);
         break
