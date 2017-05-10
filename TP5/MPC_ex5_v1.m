@@ -31,7 +31,7 @@ L = (place(A_augm',-C_augm',[0.5,0.6,0.7]))'; % Why positiv?!
 
 % Initial Estimation
 x0_est = [3;0];
-d_est = [0];
+d0_est = [0];
 
 %Initial Conditions - Real system
 x0_r = [1;2];
@@ -44,7 +44,7 @@ close all;
 
 % Error
 deltaX = [x0_r-x0_est];
-deltaD = [d_r-d_est];
+deltaD = [d_r-d0_est];
 
 obsError = [deltaX; deltaD];
 
@@ -58,6 +58,43 @@ plot(obsError(1,:)); hold on; grid on;
 plot(obsError(2,:));  
 plot(obsError(3,:)); 
 legend('Error x_1','Error x_2', 'Error d')
+xlabel('Step [s]'); ylabel('Error')
+
+
+% Initialize vectores
+xVal_est = [x0_est]; %xVal_r = [x0_r];
+dVal_est = [d0_est]; %dVal_r = [d_r];
+
+
+u = 0;
+y = C*x0_r+d_r;
+% Define loop
+MAXITER= MAXITER; minTol = 1e-3;
+
+for i = 2:MAXITER
+    i
+    dh_hat2 = A_augm*[xVal_est(:,i-1); dVal_est(i-1)]+B_augm*u+L*[C_augm,y];
+    xVal_est(:,i) = dh_hat2(1:2);
+    dVal_est(i) = dh_hat2(3);
+    
+    if(norm(xVal_est(i)-x0_r) < minTol)
+        fprintf('Problem converged after iteration %d',i);
+        break;
+    end
+end
+
+figure('Position',[0 0 1000 600]); hold on; grid on;
+plot(xVal_est(1,:), xVal_est(2,:))
+plot(x0_r(1),x0_r(2), 'ro')
+xlabel('x_1'); ylabel('x_2')
+
+
+figure('Position',[0 0 1000 600]); hold on; grid on;
+plot(dVal_est); plot([0, length(dVal_est)], [d_r, d_r])
+xlabel('Step'); ylabel('Error')
+
+
+
 
 
 %% Exercise 3 - Controller Design
@@ -81,8 +118,8 @@ I=eye(2);
 
 % Initial conditions
 xi = x0_est; % try to controll estimation
-xd_est = [x0_est; d_est]
-y_est = [C*xd_est(1:2,1)+d_est]; 
+xd_est = [x0_est; d0_est]
+y_est = [C*xd_est(1:2,1)+d0_est]; 
 r=0.5;
 
 % Real conditions
@@ -102,7 +139,7 @@ P = dlyap(A,Q);
 
 t = [0];
 
-MAXITER = 50; tolX = 1e-8;
+tolX = 1e-8;
 % Can now compute the optimal control input using
 for i = 2:MAXITER
     
