@@ -28,7 +28,7 @@ C_augm = [C, 1];
 
 % Make sure that eigenvalues of (A+LC) are in unit circle
 L = (place(A_augm',-C_augm',[0.5,0.6,0.7]))'; 
-%/!\ Why positiv?!?
+
 
 % Initial Estimation
 x0_est = [3;0];
@@ -204,8 +204,6 @@ for r = r_val
 
     end
 
-    %%
-
     figure('Position',[0 0 1000 600]);
     plot(xd_est(1,:),xd_est(2,:),'b-*');
     grid on; hold on;
@@ -225,7 +223,11 @@ for r = r_val
     
     legend('u(t)','y(t)','reference','input constraints')
     xlabel('Steps')
-end        
+       
+    
+
+end 
+    
 
 %% 
 fprintf('Programm terminated. \n')
