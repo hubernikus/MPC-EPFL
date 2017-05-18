@@ -10,13 +10,11 @@ clear variables;
 addpath(genpath('../tbxmanager'))
 
 %% System initialization
-close all; clc;
 
 A = [0.7115, -0.4345; 0.4345, 0.8853];
 B = [0.2173; 0.0573];
 
 C = [0, 1];
-%D = d
 
 % Augmented system
 B_d = zeros(2,1);
@@ -26,7 +24,9 @@ A_augm = [A,B_d;zeros(1,2),1];
 B_augm = [B;0];
 C_augm = [C, 1];
 
-L = (place(A_augm',-C_augm',[0.5,0.6,0.7]))'; % Why positiv?!
+
+% Make sure that eigenvalues of (A+LC) are in unit circle
+L = (place(A_augm',-C_augm',[0.5,0.6,0.7]))'; 
 
 % Initial Estimation
 x0_est = [3;0];
@@ -37,15 +37,18 @@ x0_r = [1;2];
 d_r = 0.2;
 
 %% Exercise 1 - Observer Design
-close all;
 
-% Error
+% Error between real system and estimation
 deltaX = [x0_r-x0_est];
 deltaD = [d_r-d0_est];
 
 obsError = [deltaX; deltaD];
 
-MAXITER = 100; minTol = 1e-2;
+
+% Rund the integral disturbance dynamics
+
+MAXITER = 50; minTol = 1e-2;
+
 for i = 2:MAXITER
     obsError(:,i) = (A_augm + L *C_augm)*obsError(:,i-1);
     if(norm(obsError(i)) < minTol)
@@ -54,11 +57,15 @@ for i = 2:MAXITER
     end
 end
 
+% Plot the results
+
 figure('Position',[0 0 1000 600]); grid on;
 plot(sqrt(sum(obsError(1:2,:).^2,1))); hold on;
 plot(obsError(3,:)); grid on;
 legend('Error x', 'Error d')
 xlabel('Step [s]'); ylabel('Error')
+title('Estimator error');
+
 
 % Estimation converges very nicely towards the real value. The error in x
 % and d converges below the minimum Tolerance in less than 100 iterations.
@@ -68,7 +75,7 @@ xVal_est = [x0_est]; xVal_r = [x0_r];
 dVal_est = [d0_est]; %dVal_r = [d_r];
     
 
-%% Define loop
+% Define loop
 MAXITER= MAXITER; minTol = 1e-2;
 
 for i = 2:MAXITER
@@ -95,14 +102,19 @@ plot(xVal_est(1,:), xVal_est(2,:),'b-*')
 plot(xVal_r(1,:),xVal_r(2,:), 'r-*')
 xlabel('x_1'); ylabel('x_2')
 legend('Estimation','Real System')
+title('Comparison between estimated and real state');
 
 figure('Position',[0 0 1000 600]); hold on; grid on;
 plot(dVal_est,'b'); plot([0, length(dVal_est)], [d_r, d_r], 'r')
 xlabel('Step'); ylabel('Error')
-legend('Real Error', 'Estimated Error')
+legend('Real disturbance', 'Estimated disturbance')
+title('Comparison of real and estimated disturbance');
 
 
-%% Exercise 3 - Controller Design
+
+%% Exercise 2 & 3 - Controller Design
+
+
 N =5; % Horizon length
 
 % Define optimization variables
@@ -113,10 +125,12 @@ u = sdpvar(1,N,'full');
 h = [3; 3];             %Input constraint
 H = [1; -1];            %Input constraint
 
-% Weights Controler that is able to track constant output reference
+% Stage cost
+%Weights Controller that is able to track constant output reference
 Q = eye(size(A,1));
 R = 1;
 I=eye(2);
+
 
 % Weight of final cost
 P = dlyap(A,Q);
@@ -146,9 +160,8 @@ for r = r_val
     tolX = 1e-8;
     % Can now compute the optimal control input using
     for i = 2:MAXITER
-        % Steady state optimisation problem
         
-        % Exercise 2 - Steady State to optimize u^2
+        % Exercise 2 - Optimize u^2 (Target tracking)
         x_s = sdpvar(2,1,'full');
         u_s = sdpvar(1,1,'full');
         obj_ss = u_s*R*u_s;
@@ -158,7 +171,7 @@ for r = r_val
         x_s=double(x_s);
         u_s=double(u_s);
 
-        % Define constraints and objective
+        % Define constraints and objective for MPC-controller
         con = [];
         obj = 0;
         %con = [con, x(:,1) == x0];
@@ -190,16 +203,17 @@ for r = r_val
             fprintf('System converged at after %d steps. \n',i);
             break
         end
+
     end
-
-    %%
-
+    
+    % Plot results
     figure('Position',[0 0 1000 600]);
     plot(xd_est(1,:),xd_est(2,:),'b-*');
     grid on; hold on;
     plot(x_r(1,:),x_r(2,:),'r-*');
     legend('Estimation','Real System')
-    xlabel('x_1'), ylabel('x_2')        
+    xlabel('x_1'), ylabel('x_2')
+    title(['Controller performance for r=',num2str(r)]);
 
 
     figure('Position',[0 0 1000 600]); grid on;
@@ -210,10 +224,15 @@ for r = r_val
     plot([0,length(u_r)-1],[3,3],'k--')
     xlim([0,length(u_r)-1])
     ylim([-3.1,3.1])
+    title(['Controller performance for r=',num2str(r)]);
     
     legend('u(t)','y(t)','reference','input constraints')
     xlabel('Steps')
-end        
+       
+    
+
+end 
+    
 
 %% 
 fprintf('Programm terminated. \n')
