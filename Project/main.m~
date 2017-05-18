@@ -33,7 +33,7 @@ sprintf('The Project files are successfully installed')
 %legend('Outside Temprature in ?C','Solar gains in kW','internal gains in kW')
 % JZ: write comments!!!!
 
-d=refDist;
+
 
 %% Controller Design (Setting-up MPC optimizer)
 
@@ -47,51 +47,45 @@ hu=[umax,umax,umax,umin,umin,umin]';
 Hy=[1 0 0;0 1 0; 0 0 1; -1 0 0; 0 -1 0; 0 0 -1];
 hy=[ymax ymax ymax ymin ymin ymin]';
 
-N=30;
-[jlj,T]=size(refDist);
-T=T-N;
-
 % Optimisation variables
 x = sdpvar(10,N,'full');
-y = sdpvar(3,N,'full');
 u = sdpvar(3,N,'full');
-d = sdpvar(3,N,'full');
 
 
-%x0=x0red; %Initial condition
+
+x0=x0red; %Initial condition
 
 % Solver options
 opt = sdpsettings('verbose',1);
 opt.solver = 'gurobi';
 
-
+MAXITER=50;
 
 % Define constraints and objective for MPC-controller
 con = [];
 obj = 0;
 
+obj = obj + (y-y_ref)'*R*(y-y_ref) % Cost function
+con = [x(:,1) == x0];
 con = [con, x(:,2) == A*x(:,1) + Bu*u(:,1)+Bd*d(:,2)]; % System dynamics
 con = [con, y(:,1) == C*x(:,1)];
 for j = 2:N-1  
-    obj = obj + (y(:,j)-y_ref)'*R*(y(:,j)-y_ref)    % Cost function
+    obj = obj + (y-y_ref)'*R*(y-y_ref) % Cost function
     con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j+1)]; % System dynamics
     con = [con, y(:,j) == C*x(:,j)];
-    con = [con, Hu*u(:,j) <= hu];                   % Input constraints
-    con = [con, Hy*y(:,j) <= hy];                   % Output constraints
+    con = [con, Hu*u(:,j) <= hu];% Input constraints
+    con = [con, Hy*y(:,j) <= hy];% Output constraints
 end
 
 
-controller = optimizer(con,obj,opt,[x(:,1);d(:)],u);
-[xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 1);
+ops = sdpsettings
+controller = optimizer(constraints,objective,ops,[x0;d(:)],u);
+[xt, yt, ut, t] = simBuild(controller, MAXITER, @shiftPred, N, 1);
 
 
 %% Section 2: economic MPC and soft constraints
 
-
-
-
-
-
+%fill in here
 
 %% Section 3: economic, soft constraints, and variable cost
 
