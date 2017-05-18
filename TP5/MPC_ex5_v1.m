@@ -75,7 +75,7 @@ xVal_est = [x0_est]; xVal_r = [x0_r];
 dVal_est = [d0_est]; %dVal_r = [d_r];
     
 
-%% Define loop
+% Define loop
 MAXITER= MAXITER; minTol = 1e-2;
 
 for i = 2:MAXITER
@@ -137,7 +137,7 @@ P = dlyap(A,Q);
 
 % Solver settings
 opt = sdpsettings;
-opt.solver = 'gurobi';
+opt.solver = 'quadprog';
 opt.quadprog.TolCon = 1e-16;
 
 
