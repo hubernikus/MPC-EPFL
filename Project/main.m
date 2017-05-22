@@ -97,12 +97,15 @@ R_econom=diag([c/3,c/3,c/3]);
 
 % Define constraints and objective for MPC-controller
 con = [];
-obj = [(u(:,1))'*R*(u(:,1))];
+obj = [(u(:,1))'*R_econom*(u(:,1))+(hu-Hu*u(:,1))'*(hu-Hu*u(:,1))+(hy-Hy*y(:,1))'*(hy-Hy*y(:,1))];
+
+%+(hy-Hy*y(:,1))*(hy-Hy*y(:,1))
+%+(hu-Hu*u(:,1))*(hu-Hu*u(:,1))
 
 con = [con, x(:,2) == A*x(:,1) + Bu*u(:,1)+Bd*d(:,2)]; % System dynamics
 con = [con, y(:,1) == C*x(:,1)];
 for j = 2:N-1  
-    obj = obj + (u(:,j))'*R*(u(:,j))+ s1(j)*s1(j)+s2(j)+s2(j);   % Cost function
+    obj = obj + (u(:,j))'*R_econom*(u(:,j))+ s1(j)'*s1(j)+s2(j)'+s2(j);   % Cost function
     con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j+1)]; % System dynamics
     con = [con, y(:,j) == C*x(:,j)];
     con = [con, (hu-Hu*u(:,j)) == s1(j)];                   % Input constraints
