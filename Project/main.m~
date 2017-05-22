@@ -88,10 +88,6 @@ controller = optimizer(con,obj,opt,[x(:,1);d(:)],u);
 %% Section 2: economic MPC and soft constraints
 c=0.2; % CHF/kWh
 
-s1 = sdpvar(6,N,'full');
-s2 = sdpvar(6,N,'full');
-
-
 % We sample every 20min and hold the input constant over this 20 min...
 R_econom=diag([c/3,c/3,c/3]);
 
@@ -102,11 +98,11 @@ obj = [(u(:,1))'*R*(u(:,1))];
 con = [con, x(:,2) == A*x(:,1) + Bu*u(:,1)+Bd*d(:,2)]; % System dynamics
 con = [con, y(:,1) == C*x(:,1)];
 for j = 2:N-1  
-    obj = obj + (u(:,j))'*R*(u(:,j))+ s1(j)*s1(j)+s2(j)+s2(j);   % Cost function
+    obj = obj + (u(:,j))'*R*(u(:,j))    % Cost function
     con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j+1)]; % System dynamics
     con = [con, y(:,j) == C*x(:,j)];
-    con = [con, (hu-Hu*u(:,j)) == s1(j)];                   % Input constraints
-    con = [con, (hy-Hy*y(:,j)) == s2(j)];                   % Output constraints
+    con = [con, (hu-Hu*u(:,j)) <= hu];                   % Input constraints
+    con = [con, Hy*y(:,j) <= hy];                   % Output constraints
 end
 
 
