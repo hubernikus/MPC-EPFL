@@ -46,6 +46,7 @@ Hu=[1 0 0;0 1 0; 0 0 1; -1 0 0; 0 -1 0; 0 0 -1];
 hu=[umax,umax,umax,umin,umin,umin]';
 Hy=[1 0 0;0 1 0; 0 0 1; -1 0 0; 0 -1 0; 0 0 -1];
 hy=[ymax ymax ymax ymin ymin ymin]';
+% Limit wrong way !!!!!
 
 N=30;
 [jlj,T]=size(refDist);
@@ -72,6 +73,8 @@ obj = 0;
 
 con = [con, x(:,2) == A*x(:,1) + Bu*u(:,1)+Bd*d(:,2)]; % System dynamics
 con = [con, y(:,1) == C*x(:,1)];
+% Include first time input constraints!!!
+
 for j = 2:N-1  
     obj = obj + (y(:,j)-y_ref)'*R*(y(:,j)-y_ref)    % Cost function
     con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j+1)]; % System dynamics
@@ -103,7 +106,8 @@ obj = [(u(:,1))'*R_econom*(u(:,1))+(hu-Hu*u(:,1))'*(hu-Hu*u(:,1))+(hy-Hy*y(:,1))
 %+(hu-Hu*u(:,1))*(hu-Hu*u(:,1))
 
 con = [con, x(:,2) == A*x(:,1) + Bu*u(:,1)+Bd*d(:,2)]; % System dynamics
-con = [con, y(:,1) == C*x(:,1)];
+con = [con, y(:,1) == C*x(:,1)]; 
+
 for j = 2:N-1  
     obj = obj + (u(:,j))'*R_econom*(u(:,j))+ s1(j)'*s1(j)+s2(j)'+s2(j);   % Cost function
     con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j+1)]; % System dynamics
