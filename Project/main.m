@@ -1,3 +1,11 @@
+
+clear;
+close all;
+clc;
+
+
+
+
 clc;
 close all;
 
@@ -49,7 +57,7 @@ hy=[ymax ymax ymax ymin ymin ymin]';
 % Limit wrong way !!!!!
 
 N=30;
-[jlj,T]=size(refDist);
+[~,T]=size(refDist);
 T=(T-N);
 
 % Optimisation variables
@@ -100,7 +108,7 @@ R_econom=diag([c/3,c/3,c/3]);
 
 % Define constraints and objective for MPC-controller
 con = [];
-obj = [(u(:,1))'*R_econom*(u(:,1))+(hu-Hu*u(:,1))'*(hu-Hu*u(:,1))+(hy-Hy*y(:,1))'*(hy-Hy*y(:,1))];
+%obj = [(u(:,1))'*R_econom*(u(:,1))+(hu-Hu*u(:,1))'*(hu-Hu*u(:,1))+(hy-Hy*y(:,1))'*(hy-Hy*y(:,1))];
 
 %+(hy-Hy*y(:,1))*(hy-Hy*y(:,1))
 %+(hu-Hu*u(:,1))*(hu-Hu*u(:,1))
@@ -109,13 +117,17 @@ con = [con, x(:,2) == A*x(:,1) + Bu*u(:,1)+Bd*d(:,2)]; % System dynamics
 con = [con, y(:,1) == C*x(:,1)]; 
 
 for j = 2:N-1  
+
     obj = obj + (u(:,j))'*R_econom*(u(:,j))+ s1(j)'*s1(j)+s2(j)'+s2(j);   % Cost function
     con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j+1)]; % System dynamics
     con = [con, y(:,j) == C*x(:,j)];
-    con = [con, (hu-Hu*u(:,j)) == s1(j)];                   % Input constraints
-    con = [con, (hy-Hy*y(:,j)) == s2(j)];                   % Output constraints
+    con = [con, Hu*u(:,j)+ s1(j) ==hu];                   % Input constraints
+    con = [con, Hy*y(:,j)+ s2(j) ==hy];  
+                 % Output constraints
 end
 
+con=[con, s1(:,:)>=0];
+con=[con, s2(:,:)>=0];
 
 controller = optimizer(con,obj,opt,[x(:,1);d(:)],u);
 [xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 1);
