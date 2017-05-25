@@ -86,15 +86,12 @@ for j = 2:N-1
     con = [con, y(:,j) == C*x(:,j)];
     con = [con, Hu*u(:,j) <= hu];                   % Input constraints
     con = [con, Hy*y(:,j) <= hy];                   % Output constraints
-end 
+end
 
-%/!\ Why do we still need this constraint? Shouldn't that be fullfilled
-%with [Hu*u(:,j) <= hu]; 
 
-con=[con, u(:,:)>=0];
 controller = optimizer(con,obj,opt,[x(:,1);d(:)],u);
 [xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 1);
- 
+
 
 %% Section 2: economic MPC and soft constraints
 % Reset constraints and objective
@@ -102,7 +99,7 @@ con = [];
 obj = 0;
 
 
-penal=100;
+penal=10;
 c=0.2; % CHF/kWh
 
 s1 = sdpvar(6,N,'full');
@@ -132,9 +129,8 @@ for j = 2:N-1
                  % Output constraints
 end
 
-con=[con, u(:,:)>=0];
-%/!\ Why do we still need this constraint? Shouldn't that be fullfilled
-%with [Hu*u(:,j) <= hu];  
+%con=[con, s1(:,:)>=0];
+%con=[con, s2(:,:)>=0];
 
 controller = optimizer(con,obj,opt,[x(:,1);d(:)],u);
 [xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 1);
