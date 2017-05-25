@@ -214,26 +214,16 @@ s1 = sdpvar(6,N,'full');
 c = sdpvar(1, N,'full'); % CHF/kWh
 e = sdpvar(1, N,'full'); 
 v = sdpvar(1, N,'full'); 
-xb=sdpvar(1, N,'full');
-sb = sdpvar(1, N,'full'); 
+x_b=sdpvar(1, N,'full');
 % Exercise specific parameters
 penal=10;
 alpha=1;
-beta=1;
-
+beta
 % Define constraints and objective for MPC-controller
 
 con = [con, x(:,2) == A*x(:,1) + Bu*u(:,1)+Bd*d(:,1)]; % System dynamics
 con = [con, y(:,1) == C*x(:,1)]; 
 obj = c(1)*e(1)
-
-% Battery
-    con = [con, v(1)==e(1)-sum(u(:,1))];
-    con = [con, e(1)>=0];
-    con = [con, xb(2) == xb(1)+v(1)];
-    con = [con, xb(1) <= 20];
-    con = [con, 0 <= xb(1)];
-    con = [con, -20 <= v(1) <= 20];
 
 for j = 2:N-1  
 
@@ -243,23 +233,14 @@ for j = 2:N-1
     con = [con, y(:,j) == C*x(:,j)];
     con = [con, Hu*u(:,j) <= hu];                   % Input constraints
     con = [con, Hy*y(:,j) <= hy + s1(j)+[sb(j);sb(j);sb(j);-sb(j);-sb(j);-sb(j)]];% Output constraints
-   
-    % Battery
     con = [con, v(j)==e(j)-sum(u(:,j))];
     con = [con, e(j)>=0];
-    con = [con, xb(j+1) == xb(j)+v(j)];
-    con = [con, xb(j) <= 20];
-    con = [con, 0 <= xb(j)];
-   
-    con = [con, -20 <= v(j) <= 20];
-    
-    
     
 end
 
 
 
 ops = sdpsettings('verbose',1, 'solver', '+gurobi');
-controller = optimizer(con,obj,opt,[x(:,1);xb(1);d(:);c(:);sb(:)],[u;v;e]);
+controller = optimizer(constraints,objective,ops,[x(:,1);xb(1);d(:);cp(:);sb(:)],[u;v;e]);
 [xt, yt, ut, t, et, xbt] = simBuildStorage( controller, T, @shiftPred, N);
 

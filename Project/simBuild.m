@@ -55,18 +55,15 @@ cpt = zeros(1,T);
 Thours=T/3;
 Tdays=Thours/24;
 refCost =0.2*ones(1,length(refDist));
-for i=0:floor(Tdays)
-    
+for i=0:floor(Tdays)  
 refCost(i*24*3+(30:30+18))=0.04;
 end
 
 % Night Setback
 
 setb=4*ones(1,length(refDist));
-for i=0:floor(Tdays)
-    
+for i=0:floor(Tdays)  
 setb(i*24*3+(24:24+30))=0;
-
 end
 
 
