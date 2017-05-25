@@ -36,6 +36,8 @@ b = ssModel.Bu;
 
 x = x0red;
 
+
+
 nx = length(A);
 nu = size(Bu,2);
 nd = size(Bd,2);
@@ -49,9 +51,20 @@ t = zeros(1,T);
 sbt = zeros(1,T);
 cpt = zeros(1,T);
 
+% Variable Cost
+Thours=T/3;
+Tdays=Thours/24;
+refCost =0.2*ones(1,length(refDist));
+for i=0:floor(Tdays)
+    
+refCost(i*24*3+(30:30+18))=0.04;
+end
+
+
+
 %% Simulating the system and the controller
 for i = 1:T
-[d_pred, cp, sb] = fhandle(i, N);
+[d_pred, cp, sb] = fhandle(i, N,refCost);
 if option == 1          % No night-setbacks and no variable cost (example)
 [U, id] = controller{[x; d_pred(:)]};                   % this is the suggested form for the controller : you can change it provided buildSim.m is also accordingly changed
 

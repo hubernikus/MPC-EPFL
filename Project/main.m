@@ -101,40 +101,33 @@ controller = optimizer(con,obj,opt,[x(:,1);d(:)],u);
 con = [];
 obj = 0;
 
+% New decision varaibles
+s1 = sdpvar(6,N,'full');
 
+% Exercise specific parameters
 penal=100;
 c=0.2; % CHF/kWh
-
-s1 = sdpvar(6,N,'full');
-s2 = sdpvar(6,N,'full');
-
-
-% We sample every 20min and hold the input constant over this 20 min...
-R_econom=[c/3,c/3,c/3];
-
+R_econom=[c,c,c]; % We sample every 20min and hold the input constant over this 20 min...
+ %/!\ Why not devided by 3???
 % Define constraints and objective for MPC-controller
-con = [];
-%obj = [(u(:,1))'*R_econom*(u(:,1))+(hu-Hu*u(:,1))'*(hu-Hu*u(:,1))+(hy-Hy*y(:,1))'*(hy-Hy*y(:,1))];
-
-%+(hy-Hy*y(:,1))*(hy-Hy*y(:,1))
-%+(hu-Hu*u(:,1))*(hu-Hu*u(:,1))
 
 con = [con, x(:,2) == A*x(:,1) + Bu*u(:,1)+Bd*d(:,2)]; % System dynamics
 con = [con, y(:,1) == C*x(:,1)]; 
 obj = R_econom*(u(:,1))
+
 for j = 2:N-1  
 
     obj = obj + R_econom*(u(:,j))+  penal*s1(j)'*s1(j);   % Cost function
     con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j+1)]; % System dynamics
     con = [con, y(:,j) == C*x(:,j)];
     con = [con, Hu*u(:,j) <= hu];                   % Input constraints
-    con = [con, Hy*y(:,j) <= hy + s1(j)];  
-                 % Output constraints
+    con = [con, Hy*y(:,j) <= hy + s1(j)];     % Output constraints
 end
 
 con=[con, u(:,:)>=0];
 %/!\ Why do we still need this constraint? Shouldn't that be fullfilled
 %with [Hu*u(:,j) <= hu];  
+%/!\ Why can't we put a soft constraint on u? Physical limitation?
 
 controller = optimizer(con,obj,opt,[x(:,1);d(:)],u);
 [xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 1);
@@ -142,12 +135,43 @@ controller = optimizer(con,obj,opt,[x(:,1);d(:)],u);
 
 
 %% Section 3: economic, soft constraints, and variable cost
+% Reset constraints and objective
+con = [];
+obj = 0;
 
-%fill in here
+
+% New decision varaibles
+s1 = sdpvar(6,N,'full');
+c = sdpvar(1, N,'full'); % CHF/kWh
+
+% Exercise specific parameters
+penal=10; 
+
+% Define constraints and objective for MPC-controller
+
+con = [con, x(:,2) == A*x(:,1) + Bu*u(:,1)+Bd*d(:,1)]; % System dynamics
+con = [con, y(:,1) == C*x(:,1)]; 
+obj = [c(1)/3,c(1)/3,c(1)/3]*(u(:,1))
+
+for j = 2:N-1  
+
+    obj = obj + [c(j),c(j),c(j)]*(u(:,j))+  penal*s1(j)'*s1(j);   % Cost function
+    %/!\ Why not devided by 3???
+    con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j)]; % System dynamics
+    con = [con, y(:,j) == C*x(:,j)];
+    con = [con, Hu*u(:,j) <= hu];                   % Input constraints
+    con = [con, Hy*y(:,j) <= hy + s1(j)];     % Output constraints
+end
+
+con=[con, u(:,:)>=0];
+
+
+controller = optimizer(con,obj,opt,[x(:,1);d(:);c(:)],u);
+[xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 2);
 
 %% Section 4 : Night setbacks
 
-%fill in here
+%
 
 %% Section 5 : Battery coupled with the building
 
