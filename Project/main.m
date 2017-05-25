@@ -105,7 +105,7 @@ obj = 0;
 s1 = sdpvar(6,N,'full');
 
 % Exercise specific parameters
-penal=100;
+penal=10;
 c=0.2; % CHF/kWh
 R_econom=[c,c,c]; % We sample every 20min and hold the input constant over this 20 min...
  %/!\ Why not devided by 3???
