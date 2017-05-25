@@ -170,8 +170,39 @@ controller = optimizer(con,obj,opt,[x(:,1);d(:);c(:)],u);
 [xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 2);
 
 %% Section 4 : Night setbacks
+% Reset constraints and objective
+con = [];
+obj = 0;
 
-%
+
+% New decision varaibles
+s1 = sdpvar(6,N,'full');
+c = sdpvar(1, N,'full'); % CHF/kWh
+sb = sdpvar(1, N,'full'); 
+% Exercise specific parameters
+penal=10; 
+
+% Define constraints and objective for MPC-controller
+
+con = [con, x(:,2) == A*x(:,1) + Bu*u(:,1)+Bd*d(:,1)]; % System dynamics
+con = [con, y(:,1) == C*x(:,1)]; 
+obj = [c(1)/3,c(1)/3,c(1)/3]*(u(:,1))
+
+for j = 2:N-1  
+
+    obj = obj + [c(j),c(j),c(j)]*(u(:,j))+  penal*s1(j)'*s1(j);   % Cost function
+    %/!\ Why not devided by 3???
+    con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j)]; % System dynamics
+    con = [con, y(:,j) == C*x(:,j)];
+    con = [con, Hu*u(:,j) <= hu];                   % Input constraints
+    con = [con, Hy*y(:,j) <= hy + s1(j)+[sb(j);sb(j);sb(j);-sb(j);-sb(j);-sb(j)]];     % Output constraints
+end
+
+con=[con, u(:,:)>=0];
+
+
+controller = optimizer(con,obj,opt,[x(:,1);d(:);c(:);sb(:)],u);
+[xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 3);
 
 %% Section 5 : Battery coupled with the building
 
