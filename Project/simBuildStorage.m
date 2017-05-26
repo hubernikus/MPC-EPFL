@@ -56,11 +56,27 @@ vt = zeros(1,T);
 cpt = zeros(1,T);
 sbt = zeros(1,T);
 
+% New Variables
+
+% Variable Cost
+Thours=T/3;
+Tdays=Thours/24;
+refCost =0.2*ones(1,length(refDist));
+for i=0:floor(Tdays)  
+refCost(i*24*3+(30:30+18))=0.04;
+end
+
+% Night Setback
+setb=4*ones(1,length(refDist));
+for i=0:floor(Tdays)  
+setb(i*24*3+(24:24+30))=0;
+end
+
 
 for i = 1:T
-[d_pred, cp, sb] = fhandle(i, N);
+[d_pred, cp, sb] = fhandle(i, N,refCost,setb);
 [U, id] = controller{[x; xb; d_pred(:); cp(:); sb(:)]}; % this is the suggested form for the controller : you can change it provided buildSim.m is also accordingly changed
-
+i
 xt(:,i) = x;
 ut(:,i) = U(1:nu,1);
 et(:,i) = U(end,1);
