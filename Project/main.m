@@ -1,17 +1,18 @@
-
-clear;
-close all;
-clc;
-
-
-
-
-clc;
-close all;
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%            Model Predictive Control - Exercise 5
+%              EPFL - Spring semester 2017 - 
+%
+%            Huber Lukas - Zgraggen Jannik
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+clear variables;
+addpath(genpath('../tbxmanager'))
+addpath(genpath(' /opt/gurobi702/linux64/matlab/'))
 
 yalmip('clear')
-clear all
+close all; clc;
+
 
 %% Model data
 
@@ -84,11 +85,12 @@ obj = 0;
 
 con = [con, x(:,2) == A*x(:,1) + Bu*u(:,1)+Bd*d(:,2)]; % System dynamics
 con = [con, y(:,1) == C*x(:,1)];
+con = [con, Hu*u(:,1) <= hu];                   % Input constraints
 % Include first time input constraints!!!
 
 for j = 2:N-1  
-    obj = obj + (y(:,j)-y_ref)'*R*(y(:,j)-y_ref)    % Cost function
-    con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j+1)]; % System dynamics
+    obj = obj + (y(:,j)-y_ref)'*R*(y(:,j)-y_ref);    % Cost function
+    con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j)]; % System dynamics
     %/!\ d(j) or d(j+1)?
     con = [con, y(:,j) == C*x(:,j)];
     con = [con, Hu*u(:,j) <= hu];                   % Input constraints
@@ -122,10 +124,9 @@ R_econom=[c/3,c/3,c/3]; % We sample every 20min and hold the input constant over
 obj = R_econom*(u(:,1))
 con = [con, x(:,2) == A*x(:,1) + Bu*u(:,1)+Bd*d(:,2)]; % System dynamics
 con = [con, y(:,1) == C*x(:,1)]; 
-con = [con, Hu*u(:,1) <= hu]; 
-% Constraints and obj 
-for j = 2:N-1  
 
+% !!! what happens with s1? how defined
+for j = 2:N-1  
     obj = obj + R_econom*(u(:,j))+  penal*s1(j)'*s1(j);   % Cost function
     con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j+1)]; % System dynamics
     con = [con, y(:,j) == C*x(:,j)];
@@ -140,7 +141,11 @@ con = [con, Hy*y(:,N) <= hy + s1(N)]
 controller = optimizer(con,obj,opt,[x(:,1);d(:)],u);
 [xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 1);
 
+
 Total_sc=sum(ut(:))*c/3;
+
+
+%[xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 1);
 
 
 %% Section 3: economic, soft constraints, and variable cost
@@ -214,6 +219,7 @@ controller = optimizer(con,obj,opt,[x(:,1);d(:);c(:);sb(:)],u);
 Total_sb=refCost(1:T)/3*ut(1,:)'+refCost(1:T)/3*ut(2,:)'+refCost(1:T)/3*ut(3,:)';
 
 %% Section 5 : Battery coupled with the building
+close all;
 % Reset constraints and objective
 con = [];
 obj = 0;
@@ -266,6 +272,8 @@ end
 
 ops = sdpsettings('verbose',1, 'solver', '+gurobi');
 controller = optimizer(con,obj,opt,[x(:,1);xb(1);d(:);c(:);sb(:)],[u;v;e]);
+
 [xt, yt, ut, t, et, xbt] = simBuildStorage( controller, T, @shiftPred, N);
 
 Total_bat=refCost(1:T)/3*ut(1,:)'+refCost(1:T)/3*ut(2,:)'+refCost(1:T)/3*ut(3,:)';
+
