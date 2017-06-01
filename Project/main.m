@@ -207,10 +207,10 @@ end
 
 ops = sdpsettings('verbose',1, 'solver', '+gurobi');
 controller = optimizer(con,obj,opt,[x(:,1);d(:);c(:);sb(:)],u);
-[xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 3);
+[xt_sb, yt_sb, ut_sb, t_sb] = simBuild(controller, T, @shiftPred, N, 3);
 
-
-Total_sb=refCost(1:T)/3*ut(1,:)'+refCost(1:T)/3*ut(2,:)'+refCost(1:T)/3*ut(3,:)';
+et_sb=ut_sb(1,:)+ut_sb(2,:)+ut_sb(3,:);
+Total_sb=refCost(1:T)/3*ut_sb(1,:)'+refCost(1:T)/3*ut_sb(2,:)'+refCost(1:T)/3*ut_sb(3,:)';
 
 %% Section 5 : Battery coupled with the building
 
@@ -234,11 +234,11 @@ beta=1;
 
 for j = 1:N-1  
     % System
-    obj = obj + c(j)*e(j)+  penal*s1(j)'*s1(j);   % Cost function
+    obj = obj + c(j)*e(j)+  penal*s1(:,j)'*s1(:,j);   % Cost function
     con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j)]; % System dynamics
     con = [con, y(:,j) == C*x(:,j)];
     con = [con, Hu*u(:,j) <= hu];                   % Input constraints
-    con = [con, Hy*y(:,j) <= hy + s1(j)+[sb(j);sb(j);sb(j);sb(j);sb(j);sb(j)]];% Output constraints
+    con = [con, Hy*y(:,j) <= hy + s1(:,j)+[sb(j);sb(j);sb(j);sb(j);sb(j);sb(j)]];% Output constraints
    
     % Battery
     con = [con, v(j)==e(j)-sum(u(:,j))];
@@ -258,14 +258,22 @@ end
     % Battery
     con = [con, v(N)==e(N)-sum(u(:,N))];
     con = [con, e(N)>=0];
-    con = [con, xb(N) <= 20];
-    con = [con, 0 <= xb(N)];
+    con = [con, 0 <= xb(N) <= 20];
     con = [con, -20 <= v(N) <= 20];  
 
+    % v power to battery 
+    % e power from grid
+    % u power to buildings
 
 ops = sdpsettings('verbose',1, 'solver', '+gurobi');
 controller = optimizer(con,obj,opt,[x(:,1);xb(1);d(:);c(:);sb(:)],[u;v;e]);
 
-[xt, yt, ut, t, et, xbt] = simBuildStorage( controller, T, @shiftPred, N);
+[xt_bat, yt_bat, ut_bat, t_bat, et_bat, xbt_bat] = simBuildStorage( controller, T, @shiftPred, N);
 
-Total_bat=refCost(1:T)/3*et(1,:);
+Total_bat=refCost(1:T)/3*et_bat(1,:)';
+
+figure
+vt_bat=et-ut_bat(1,:)-ut_bat(2,:)-ut_bat(3,:);
+plot(t_bat,vt_bat)
+hold on
+plot(t_bat,refCost(1:T))
