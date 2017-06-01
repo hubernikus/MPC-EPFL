@@ -143,11 +143,6 @@ controller = optimizer(con,obj,opt,[x(:,1);d(:)],u);
 
 
 Total_sc=sum(ut(:))*c/3;
-
-
-%[xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 1);
-
-
 %% Section 3: economic, soft constraints, and variable cost
 % Reset constraints and objective
 con = [];
@@ -188,7 +183,6 @@ Total_vc=refCost(1:T)/3*ut(1,:)'+refCost(1:T)/3*ut(2,:)'+refCost(1:T)/3*ut(3,:)'
 con = [];
 obj = 0;
 
-
 % New decision varaibles
 s1 = sdpvar(6,N,'full');
 c = sdpvar(1, N,'full'); % CHF/kWh
@@ -219,7 +213,7 @@ controller = optimizer(con,obj,opt,[x(:,1);d(:);c(:);sb(:)],u);
 Total_sb=refCost(1:T)/3*ut(1,:)'+refCost(1:T)/3*ut(2,:)'+refCost(1:T)/3*ut(3,:)';
 
 %% Section 5 : Battery coupled with the building
-close all;
+
 % Reset constraints and objective
 con = [];
 obj = 0;
@@ -261,7 +255,6 @@ end
     con = [con, y(:,N) == C*x(:,N)];
     con = [con, Hu*u(:,N) <= hu];                   % Input constraints
     con = [con, Hy*y(:,N) <= hy + s1(N)+[sb(N);sb(N);sb(N);sb(N);sb(N);sb(N)]];% Output constraints
-   
     % Battery
     con = [con, v(N)==e(N)-sum(u(:,N))];
     con = [con, e(N)>=0];
@@ -275,5 +268,4 @@ controller = optimizer(con,obj,opt,[x(:,1);xb(1);d(:);c(:);sb(:)],[u;v;e]);
 
 [xt, yt, ut, t, et, xbt] = simBuildStorage( controller, T, @shiftPred, N);
 
-Total_bat=refCost(1:T)/3*ut(1,:)'+refCost(1:T)/3*ut(2,:)'+refCost(1:T)/3*ut(3,:)';
-
+Total_bat=refCost(1:T)/3*et(1,:);
