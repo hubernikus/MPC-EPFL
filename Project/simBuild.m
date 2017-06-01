@@ -75,34 +75,33 @@ end
 
 %% Simulating the system and the controller
 for i = 1:T
-<<<<<<< HEAD
-    [d_pred, cp, sb] = fhandle(i, N);
-    if option == 1          % No night-setbacks and no variable cost (example)
-        % this is the suggested form for the controller : you can change it provided buildSim.m is also accordingly changed
-        [U, id] = controller{[x; d_pred(:)]};                   
-    elseif option == 2      % Variable cost, but no night-setbacks
-        % this is the suggested form for the controller : you can change it provided buildSim.m is also accordingly changed
-        [U, id] = controller{[x; d_pred(:); cp(:)]};            
-        cpt(:,i) = cp(1,1);
-    elseif option == 3      % Variable cost and night-setbacks
-        % this is the suggested form for the controller : you can change it provided buildSim.m is also accordingly changed
-        [U, id] = controller{[x; d_pred(:); cp(:); sb(:)]};     
-        cpt(:,i) = cp(1,1);
-        sbt(:,i) = sb(1,1);
-    end
+%     [d_pred, cp, sb] = fhandle(i, N);
+%     if option == 1          % No night-setbacks and no variable cost (example)
+%         % this is the suggested form for the controller : you can change it provided buildSim.m is also accordingly changed
+%         [U, id] = controller{[x; d_pred(:)]};                   
+%     elseif option == 2      % Variable cost, but no night-setbacks
+%         % this is the suggested form for the controller : you can change it provided buildSim.m is also accordingly changed
+%         [U, id] = controller{[x; d_pred(:); cp(:)]};            
+%         cpt(:,i) = cp(1,1);
+%     elseif option == 3      % Variable cost and night-setbacks
+%         % this is the suggested form for the controller : you can change it provided buildSim.m is also accordingly changed
+%         [U, id] = controller{[x; d_pred(:); cp(:); sb(:)]};     
+%         cpt(:,i) = cp(1,1);
+%         sbt(:,i) = sb(1,1);
+%     end
+% 
+%     xt(:,i) = x;
+%     ut(:,i) = U(1:nu,1);
+%     yt(:,i) = C*x;
+% 
+%     t(1,i) = i;
+% 
+%     disp(['Iteration ' int2str(i)])
+%     yalmiperror(id)
+% 
+%     x = A*x + Bu*U(1:nu,1) + Bd*d_pred(:,1);
+% % =======
 
-    xt(:,i) = x;
-    ut(:,i) = U(1:nu,1);
-    yt(:,i) = C*x;
-
-    t(1,i) = i;
-
-    disp(['Iteration ' int2str(i)])
-    yalmiperror(id)
-
-    x = A*x + Bu*U(1:nu,1) + Bd*d_pred(:,1);
-=======
-i    
 [d_pred, cp, sb] = fhandle(i, N,refCost,setb);
 if option == 1          % No night-setbacks and no variable cost (example)
 [U, id] = controller{[x; d_pred(:)]};                   % this is the suggested form for the controller : you can change it provided buildSim.m is also accordingly changed
@@ -126,7 +125,7 @@ disp(['Iteration ' int2str(i)])
 yalmiperror(id)
 
 x = A*x + Bu*U(1:nu,1) + Bd*d_pred(:,1);
->>>>>>> 883f25dc072c0a4d4a9919f4c9b6b57bfc01471d
+% >>>>>>> 883f25dc072c0a4d4a9919f4c9b6b57bfc01471d
 
 end
 
