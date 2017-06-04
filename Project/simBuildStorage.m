@@ -76,7 +76,7 @@ end
 for i = 1:T
 [d_pred, cp, sb] = fhandle(i, N,refCost,setb);
 [U, id] = controller{[x; xb; d_pred(:); cp(:); sb(:)]}; % this is the suggested form for the controller : you can change it provided buildSim.m is also accordingly changed
-i
+
 xt(:,i) = x;
 ut(:,i) = U(1:nu,1);
 et(:,i) = U(end,1);

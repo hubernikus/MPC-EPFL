@@ -40,7 +40,7 @@ sprintf('The Project files are successfully installed')
 %Fill in here
 %plot(refDist');
 %legend('Outside Temprature in ?C','Solar gains in kW','internal gains in kW')
-% JZ: write comments!!!!
+
 
 d=refDist;
 N=30;
@@ -83,11 +83,10 @@ opt.solver = 'gurobi';
 con = [];
 obj = 0;
 
+% Constraints and Objective
 con = [con, x(:,2) == A*x(:,1) + Bu*u(:,1)+Bd*d(:,2)]; % System dynamics
 con = [con, y(:,1) == C*x(:,1)];
 con = [con, Hu*u(:,1) <= hu];                   % Input constraints
-% Include first time input constraints!!!
-
 for j = 2:N-1  
     obj = obj + (y(:,j)-y_ref)'*R*(y(:,j)-y_ref);    % Cost function
     con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j)]; % System dynamics
@@ -96,11 +95,12 @@ for j = 2:N-1
     con = [con, Hu*u(:,j) <= hu];                   % Input constraints
     con = [con, Hy*y(:,j) <= hy];                   % Output constraints
 end 
+obj = obj + (y(:,N)-y_ref)'*R*(y(:,N)-y_ref);
+con = [con, y(:,N) == C*x(:,N)];
+con = [con, Hu*u(:,N) <= hu]; 
+con = [con, Hy*y(:,N) <= hy];  
 
-%/!\ Why do we still need this constraint? Shouldn't that be fullfilled
-%with [Hu*u(:,j) <= hu]; 
-
-con=[con, u(:,:)>=0];
+% Simulation
 %controller = optimizer(con,obj,opt,[x(:,1);d(:)],u);
 %[xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 1);
  
@@ -111,7 +111,8 @@ con = [];
 obj = 0;
 
 % New decision varaibles
-s1 = sdpvar(6,N,'full');
+s = sdpvar(1,1,'full');
+S = [s;s;s;s;s;s];
 
 % Exercise specific parameters
 penal=10;
@@ -120,62 +121,57 @@ R_econom=[c/3,c/3,c/3]; % We sample every 20min and hold the input constant over
  %/!\ Why not devided by 3???
 % Define constraints and objective for MPC-controller
 
-% Initial constraints and obj // Without constraint on y
-obj = R_econom*(u(:,1))
-con = [con, x(:,2) == A*x(:,1) + Bu*u(:,1)+Bd*d(:,2)]; % System dynamics
-con = [con, y(:,1) == C*x(:,1)]; 
-
-% !!! what happens with s1? how defined
-for j = 2:N-1  
-    obj = obj + R_econom*(u(:,j))+  penal*s1(j)'*s1(j);   % Cost function
+% Constraints and Objectives
+for j = 1:N-1  
+    obj = obj + R_econom*(u(:,j))+  penal*S'*S;   % Cost function
     con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j+1)]; % System dynamics
     con = [con, y(:,j) == C*x(:,j)];
     con = [con, Hu*u(:,j) <= hu];                   % Input constraints
-    con = [con, Hy*y(:,j) <= hy + s1(j)];     % Output constraints
+    con = [con, Hy*y(:,j) <= hy + S];     % Output constraints
 end
-% Final constraints and obj 
-con = [con, Hu*u(:,N) <= hu];
-con = [con, Hy*y(:,N) <= hy + s1(N)]
+    obj = obj + R_econom*(u(:,N))+  penal*S'*S;   % Cost function
+    con = [con, y(:,N) == C*x(:,N)];
+    con = [con, Hu*u(:,N) <= hu];                   % Input constraints
+    con = [con, Hy*y(:,N) <= hy + S];     % Output constraints
 
+% Simulation
+%opt = sdpsettings('verbose',1, 'solver', '+gurobi');
+%controller = optimizer(con,obj,opt,[x(:,1);d(:)],u);
+%[xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 1);
 
-controller = optimizer(con,obj,opt,[x(:,1);d(:)],u);
-[xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 1);
-
-
+% Total Cost
 Total_sc=sum(ut(:))*c/3;
+
 %% Section 3: economic, soft constraints, and variable cost
 % Reset constraints and objective
 con = [];
 obj = 0;
 
-
 % New decision varaibles
-s1 = sdpvar(6,N,'full');
 c = sdpvar(1, N,'full'); % CHF/kWh
 
 % Exercise specific parameters
 penal=1; 
 
-% Initial constraints and obj // Without constraint on y
- 
+% Constraints and Objectives
 for j = 1:N-1  
-    obj = obj + [c(j)/3,c(j)/3,c(j)/3]*(u(:,j))+  penal*s1(j)'*s1(j);   % Cost function
+    obj = obj + [c(j)/3,c(j)/3,c(j)/3]*(u(:,j))+  penal*S'*S;   % Cost function
     con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j)]; % System dynamics
     con = [con, y(:,j) == C*x(:,j)];
     con = [con, Hu*u(:,j) <= hu];                   % Input constraints
-    con = [con, Hy*y(:,j) <= hy + s1(j)];     % Output constraints
+    con = [con, Hy*y(:,j) <= hy + S];     % Output constraints
 end
-
-% Final constr
-obj = obj + [c(N)/3,c(N)/3,c(N)/3]*(u(:,N))+  penal*s1(N)'*s1(N);   % Cost function
+obj = obj + [c(N)/3,c(N)/3,c(N)/3]*(u(:,N))+penal*S'*S;   % Cost function
 con = [con, y(:,N) == C*x(:,N)];
 con = [con, Hu*u(:,N) <= hu];                   % Input constraints
-con = [con, Hy*y(:,N) <= hy + s1(N)];     % Output constraints
+con = [con, Hy*y(:,N) <= hy + S];     % Output constraints
 
-ops = sdpsettings('verbose',1, 'solver', '+gurobi');
+% Simulation
+opt = sdpsettings('verbose',1, 'solver', '+gurobi');
 controller = optimizer(con,obj,opt,[x(:,1);d(:);c(:)],u);
 [xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 2);
 
+% Total Cost
 Total_vc=refCost(1:T)/3*ut(1,:)'+refCost(1:T)/3*ut(2,:)'+refCost(1:T)/3*ut(3,:)';
 
 %% Section 4 : Night setbacks
@@ -184,7 +180,7 @@ con = [];
 obj = 0;
 
 % New decision varaibles
-s1 = sdpvar(6,N,'full');
+
 c = sdpvar(1, N,'full'); % CHF/kWh
 sb = sdpvar(1, N,'full'); 
 % Exercise specific parameters
@@ -192,7 +188,7 @@ penal=1;
 % Define constraints and objective for MPC-controller
 
 for j = 1:N-1  
-    obj = obj + [c(j)/3,c(j)/3,c(j)/3]*(u(:,j))+  penal*s1(j)'*s1(j);   % Cost function
+    obj = obj + [c(j)/3,c(j)/3,c(j)/3]*(u(:,j))+  penal*S'*S;   % Cost function
     con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j)]; % System dynamics
     con = [con, y(:,j) == C*x(:,j)];
     con = [con, Hu*u(:,j) <= hu];                   % Input constraints
@@ -200,7 +196,7 @@ for j = 1:N-1
 end
 
 % Final constraints
-    obj = obj + [c(N)/3,c(N)/3,c(N)/3]*(u(:,N))+  penal*s1(N)'*s1(N);   % Cost function
+    obj = obj + [c(N)/3,c(N)/3,c(N)/3]*(u(:,N))+  penal*S'*S;   % Cost function
     con = [con, y(:,N) == C*x(:,N)];
     con = [con, Hu*u(:,N) <= hu];                   % Input constraints
     con = [con, Hy*y(:,N) <= hy + s1(N)+[sb(N);sb(N);sb(N);sb(N);sb(N);sb(N)]];     % Output constraints
@@ -227,8 +223,8 @@ xb=sdpvar(1, N,'full');
 sb = sdpvar(1, N,'full'); 
 % Exercise specific parameters
 penal=10;
-alpha=1;
-beta=1;
+alpha=ssModel.A;
+beta=ssModel.Bu;
 
 % Define constraints and objective for MPC-controller
 
@@ -243,7 +239,7 @@ for j = 1:N-1
     % Battery
     con = [con, v(j)==e(j)-sum(u(:,j))];
     con = [con, e(j)>=0];
-    con = [con, xb(j+1) == xb(j)+v(j)];
+    con = [con, xb(j+1) == alpha*xb(j)+beta*v(j)];
     con = [con, xb(j) <= 20];
     con = [con, 0 <= xb(j)];
     con = [con, -20 <= v(j) <= 20];  
@@ -266,14 +262,14 @@ end
     % u power to buildings
 
 ops = sdpsettings('verbose',1, 'solver', '+gurobi');
-controller = optimizer(con,obj,opt,[x(:,1);xb(1);d(:);c(:);sb(:)],[u;v;e]);
+controller = optimizer(con,obj,ops,[x(:,1);xb(1);d(:);c(:);sb(:)],[u;v;e]);
 
 [xt_bat, yt_bat, ut_bat, t_bat, et_bat, xbt_bat] = simBuildStorage( controller, T, @shiftPred, N);
 
 Total_bat=refCost(1:T)/3*et_bat(1,:)';
 
 figure
-vt_bat=et-ut_bat(1,:)-ut_bat(2,:)-ut_bat(3,:);
+vt_bat=et_bat-ut_bat(1,:)-ut_bat(2,:)-ut_bat(3,:);
 plot(t_bat,vt_bat)
 hold on
 plot(t_bat,refCost(1:T))
