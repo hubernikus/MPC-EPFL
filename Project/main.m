@@ -224,8 +224,8 @@ xb=sdpvar(1, N,'full');
 sb = sdpvar(1, N,'full'); 
 % Exercise specific parameters
 penal=10;
-alpha=1;%ssModel.A;
-beta=1;%ssModel.Bu;
+alpha=ssModel.A;
+beta=ssModel.Bu;
 
 % Define constraints and objective for MPC-controller
 
