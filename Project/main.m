@@ -119,7 +119,7 @@ S = sdpvar(6,N,'full');
 %S = [s;s;s;s;s;s];
 
 % Exercise specific parameters
-penal=1e5;
+penal=0.5;
 c=0.2; % CHF/kWh
 R_econom=[c/3,c/3,c/3]; % We sample every 20min and hold the input constant over this 20 min...
  %/!\ Why not devided by 3???
@@ -128,12 +128,12 @@ R_econom=[c/3,c/3,c/3]; % We sample every 20min and hold the input constant over
 saveS = [];
 % Constraints and Objectives
 for j = 1:N-1  
-    obj = obj + R_econom*(u(:,j))+  penal*S(:,i)'*S(:,i);   % Cost function
-    con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,i)]; % System dynamics
+    obj = obj + R_econom*(u(:,j))+  penal*S(:,j)'*S(:,j);   % Cost function
+    con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j)]; % System dynamics
     con = [con, y(:,j) == C*x(:,j)];
     con = [con, Hu*u(:,j) <= hu];                   % Input constraints
-    con = [con, Hy*y(:,j) <= hy + S(:,i)];     % Output constraints
-    saveS(:,i) = S(:,i);
+    con = [con, Hy*y(:,j) <= hy + S(:,j)];     % Output constraints
+    saveS(:,j) = S(:,j);
 end
     obj = obj + R_econom*(u(:,N))+  penal*S(:,N)'*S(:,N);   % Cost function
     con = [con, y(:,N) == C*x(:,N)];
@@ -150,8 +150,10 @@ controller = optimizer(con,obj,opt,[x(:,1);d(:)],u);
 totCost_sc=sum(ut(:))*c/3;
 tNotEner_sc = sum(ut);
 %%
-figure;
-plot(saveS)
+
+%figure;
+
+%plot(saveS)
 %% Ex2 - only one slack
 %Reset constraints and objective
 con = [];
