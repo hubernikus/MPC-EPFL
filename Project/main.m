@@ -8,7 +8,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear variables;
 addpath(genpath('../tbxmanager'))
-addpath(genpath(' /opt/gurobi702/linux64/matlab/'))
+addpath(genpath(' ../../../../../../../../opt/gurobi702/linux64/matlab/'))
 
 yalmip('clear')
 close all; clc;
@@ -119,7 +119,7 @@ S = sdpvar(6,N,'full');
 %S = [s;s;s;s;s;s];
 
 % Exercise specific parameters
-penal=1;
+penal=1e5;
 c=0.2; % CHF/kWh
 R_econom=[c/3,c/3,c/3]; % We sample every 20min and hold the input constant over this 20 min...
  %/!\ Why not devided by 3???
@@ -129,7 +129,7 @@ saveS = [];
 % Constraints and Objectives
 for j = 1:N-1  
     obj = obj + R_econom*(u(:,j))+  penal*S(:,i)'*S(:,i);   % Cost function
-    con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j+1)]; % System dynamics
+    con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,i)]; % System dynamics
     con = [con, y(:,j) == C*x(:,j)];
     con = [con, Hu*u(:,j) <= hu];                   % Input constraints
     con = [con, Hy*y(:,j) <= hy + S(:,i)];     % Output constraints
@@ -158,7 +158,7 @@ con = [];
 obj = 0;
 
 % New decision varaibles
-S = sdpvar(1,1,'full');
+s = sdpvar(1,1,'full');
 S = [s;s;s;s;s;s];
 
 % Exercise specific parameters
@@ -171,7 +171,7 @@ R_econom=[c/3,c/3,c/3]; % We sample every 20min and hold the input constant over
 % Constraints and Objectives
 for j = 1:N-1  
     obj = obj + R_econom*(u(:,j))+  penal*S(:)'*S(:);   % Cost function
-    con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j+1)]; % System dynamics
+    con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j)]; % System dynamics
     con = [con, y(:,j) == C*x(:,j)];
     con = [con, Hu*u(:,j) <= hu];                   % Input constraints
     con = [con, Hy*y(:,j) <= hy + S(:)];     % Output constraints
@@ -184,7 +184,7 @@ end
 % Simulation
 opt = sdpsettings('verbose',1, 'solver', '+gurobi');
 controller = optimizer(con,obj,opt,[x(:,1);d(:)],u);
-[xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 1,'fig/softConstrK');
+[xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 1,'fig/softConstrK_oneSlack_');
 
 % Total Cost
 totCost_sc=sum(ut(:))*c/3;

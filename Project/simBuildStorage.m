@@ -125,11 +125,11 @@ plot(t, yt(2,:),'k')
 xlabel('Hours');
 ylabel('Temperature - Zone2 (C)');
 
-
+    
 % figure
 % subplot(2,3,3)
 plot(t, yt(3,:),'c')
-hold on grid on;
+hold on; grid on;
 plot(t, 26+sbt(1,:),'r')
 plot(t, 22-sbt(1,:),'r')
 % legend('Zone-3 Temperature', 'Temperature Constraints')
