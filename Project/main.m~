@@ -114,7 +114,7 @@ obj = 0;
 S = sdpvar(6,N,'full');
 
 % Exercise specific parameters
-penal=100;
+penal=1;
 c=0.2; % CHF/kWh
 R_econom=[c/3,c/3,c/3]; % We sample every 20min and hold the input constant over this 20 min...
  %/!\ Why not devided by 3???
@@ -247,10 +247,10 @@ end
 
 % Final constraints
     % System
-    obj = obj + c(N)*e(N)+  penal*S(:,N)'*S(:,N);   % Cost function
+    obj = obj + c(N)*e(N)+  penal*S'*S;   % Cost function
     con = [con, y(:,N) == C*x(:,N)];
     con = [con, Hu*u(:,N) <= hu];                   % Input constraints
-    con = [con, Hy*y(:,N) <= hy + S(:,N)+[sb(N);sb(N);sb(N);sb(N);sb(N);sb(N)]];% Output constraints
+    con = [con, Hy*y(:,N) <= hy + S+[sb(N);sb(N);sb(N);sb(N);sb(N);sb(N)]];% Output constraints
     % Battery
     con = [con, v(N)==e(N)-sum(u(:,N))];
     con = [con, e(N)>=0];
