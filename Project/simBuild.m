@@ -23,7 +23,13 @@
 % t - time (time-steps)
 
 
-function [ xt, yt, ut, t ] = simBuild( controller, T, fhandle, N, option)
+function [ xt, yt, ut, t ] = simBuild( controller, T, fhandle, N, option, fileName)
+
+
+% Default filenames
+if nargin<6
+    fileName1 ='defaultFig1';
+end
 
 load building.mat;
 load battery.mat;
@@ -39,10 +45,7 @@ Ts = ssM.timestep;
 a = ssModel.A;
 b = ssModel.Bu; 
 
-
 x = x0red;
-
-
 
 nx = length(A);
 nu = size(Bu,2);
@@ -62,7 +65,7 @@ Thours=T/3;
 Tdays=Thours/24;
 refCost =0.2*ones(1,length(refDist));
 for i=0:floor(Tdays)  
-refCost(i*24*3+(30:30+18))=0.04;
+    refCost(i*24*3+(30:30+18))=0.04;
 end
 
 % Night Setback
@@ -135,10 +138,10 @@ end
 % Converting time scale from time-step to hours
 t = t./3;
 
-figure
+figure('Position',[0 0 1200 500])
 % subplot(2,3,1)
 plot(t, yt(1,:))
-hold on
+hold on; grid on;
 % if option == 3
 %     hold on
 %     plot(t, 26+sbt(1,:),'r')
@@ -165,7 +168,7 @@ ylabel('Temperature (C)');
 % subplot(2,3,3)
 plot(t, yt(3,:), 'c')
 if option == 3
-    hold on
+    hold on; grid on;
     plot(t, 26+sbt(1,:),'r')
     plot(t, 22-sbt(1,:),'r')
     legend('Zone-1','Zone-2','Zone-3', 'Temperature Constraints')
@@ -174,12 +177,14 @@ else
 end
 xlabel('Hours');
 ylabel('Temperature (C)');
+xlim([t(1),t(end)])
+print(sprintf('%s_tempZones',fileName), '-dpng')
 
 
-figure
+figure('Position',[0 0 1200 500])
 % subplot(2,3,4)
 plot(t,ut(1,:))
-hold on
+hold on; grid on;
 % if option == 2 || option == 3
 %     hold on
 %     plot(t,10*cpt(1,:),'r')
@@ -205,7 +210,7 @@ ylabel('Power Input (kW)');
 % subplot(2,3,6)
 plot(t,ut(3,:),'c')
 if option == 2 || option == 3
-    hold on
+    hold on; grid on
     plot(t,10*cpt(1,:),'r')
     legend('Zone-1','Zone-2','Zone-3','High/Low Price Time')
 else
@@ -213,7 +218,7 @@ else
 end
 xlabel('Hours');
 ylabel('Power Input (kW)');
-
+xlim([t(1) t(end)])
+print(sprintf('%s_power',fileName), '-dpng')
 
 end
-

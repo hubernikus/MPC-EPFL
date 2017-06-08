@@ -18,7 +18,7 @@
 % xbt - State of the battery storage as a function of time
 
 
-function [ xt, yt, ut, t, et, xbt ] = simBuildStorage(controller, T, fhandle, N)
+function [ xt, yt, ut, t, et, xbt ] = simBuildStorage(controller, T, fhandle, N, figName)
 load building.mat;
 load battery.mat;
 % Parameters of the Building Model
@@ -104,11 +104,10 @@ end
 % Converting time scale from time-step to hours
 t = t./3;
 
-
-figure
+figure('Position',[0 0 1200 500]);
 % subplot(2,3,1)
 plot(t, yt(1,:))
-hold on
+hold on; grid on
 % plot(t, 26+sbt(1,:),'r')
 % plot(t, 22-sbt(1,:),'r')
 % legend('Zone-1 Temperature', 'Temperature Constraints')
@@ -126,23 +125,24 @@ plot(t, yt(2,:),'k')
 xlabel('Hours');
 ylabel('Temperature - Zone2 (C)');
 
+
 % figure
 % subplot(2,3,3)
 plot(t, yt(3,:),'c')
-hold on
+hold on grid on;
 plot(t, 26+sbt(1,:),'r')
 plot(t, 22-sbt(1,:),'r')
 % legend('Zone-3 Temperature', 'Temperature Constraints')
 legend('Zone-1','Zone-2','Zone-3', 'Temperature Constraints')
 xlabel('Hours');
 ylabel('Temperature - Zone3 (C)');
+xlim([t(1),t(end)])
+print(sprintf('%s_temp',figName),'-dpng');
 
-
-
-figure
+figure('Position',[0 0 1200 500]);
 % subplot(2,3,4)
 plot(t,ut(1,:))
-hold on
+hold on; grid on
 % plot(t,10*cpt(1,:),'r')
 % legend('Zone-1 Input', 'High/Low Price Time')
 xlabel('Hours');
@@ -151,7 +151,7 @@ ylabel('Power Input - Zone1 (kW)');
 
 % figure
 % subplot(2,3,5)
-plot(t,ut(2,:),'b')
+plot(t,ut(2,:),'b'); grid on;
 % hold on
 % plot(t,10*cpt(1,:),'r')
 % legend('Zone-2 Input', 'High/Low Price Time')
@@ -162,39 +162,42 @@ ylabel('Power Input - Zone2 (kW)');
 % figure
 % subplot(2,3,6)
 plot(t,ut(3,:),'c')
-hold on
+hold on; grid on
 plot(t,10*cpt(1,:),'r')
 % legend('Zone-3 Input', 'High/Low Price Time')
 legend('Zone-1','Zone-2','Zone-3','High/Low Price Time')
 xlabel('Hours');
 ylabel('Power Input - Zone3 (kW)');
+xlim([t(1),t(end)])
+print(sprintf('%s_powerZones',figName),'-dpng');
 
-
-
-figure
+figure('visible','off');
 subplot(2,1,1)
-plot(t,xbt(1,:))
+plot(t,xbt(1,:)); grid on
 xlabel('Hours');
 ylabel('Storage State');
+xlim([t(1),t(end)])
 
 % figure
 subplot(2,1,2)
 plot(t,et(1,:))
-hold on
+hold on; grid on;
 plot(t,10*cpt(1,:),'r')
 legend('Electrical Power Purchased','High/Low Price Time')
 xlabel('Hours');
 ylabel('Power purchased (kW)');
+xlim([t(1),t(end)])
+print(sprintf('%s_powerPurchase',figName),'-dpng');
 
-
-figure
+figure('Position',[0 0 1200 800]);
 plot(t,vt(1,:))
-hold on
+hold on; grid on;
 plot(t,10*cpt(1,:),'r')
 legend('Power to storage Purchased','High/Low Price Time')
 xlabel('Hours');
 ylabel('Power input to the Storage (kW)');
-
+xlim([t(1),t(end)])
+print(sprintf('%s_powerToStorage',figName), '-dpng');
 
 end
 

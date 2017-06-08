@@ -101,9 +101,13 @@ con = [con, Hu*u(:,N) <= hu];
 con = [con, Hy*y(:,N) <= hy];  
 
 % Simulation
-%controller = optimizer(con,obj,opt,[x(:,1);d(:)],u);
-%[xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 1);
- 
+controller = optimizer(con,obj,opt,[x(:,1);d(:)],u);
+[xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 1,'fig/firstMPC');
+
+
+% total cost
+totE_mpc = sum(ut);
+totC_mpc = sum(ut)/3;
 
 %% Section 2: economic MPC and soft constraints
 % Reset constraints and objective
@@ -111,11 +115,54 @@ con = [];
 obj = 0;
 
 % New decision varaibles
-s = sdpvar(1,1,'full');
+S = sdpvar(6,N,'full');
+%S = [s;s;s;s;s;s];
+
+% Exercise specific parameters
+penal=1;
+c=0.2; % CHF/kWh
+R_econom=[c/3,c/3,c/3]; % We sample every 20min and hold the input constant over this 20 min...
+ %/!\ Why not devided by 3???
+% Define constraints and objective for MPC-controller
+
+saveS = [];
+% Constraints and Objectives
+for j = 1:N-1  
+    obj = obj + R_econom*(u(:,j))+  penal*S(:,i)'*S(:,i);   % Cost function
+    con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j+1)]; % System dynamics
+    con = [con, y(:,j) == C*x(:,j)];
+    con = [con, Hu*u(:,j) <= hu];                   % Input constraints
+    con = [con, Hy*y(:,j) <= hy + S(:,i)];     % Output constraints
+    saveS(:,i) = S(:,i);
+end
+    obj = obj + R_econom*(u(:,N))+  penal*S(:,N)'*S(:,N);   % Cost function
+    con = [con, y(:,N) == C*x(:,N)];
+    con = [con, Hu*u(:,N) <= hu];                   % Input constraints
+    con = [con, Hy*y(:,N) <= hy + S(:,N)];     % Output constraints
+
+    
+% Simulation
+opt = sdpsettings('verbose',1, 'solver', '+gurobi');
+controller = optimizer(con,obj,opt,[x(:,1);d(:)],u);
+[xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 1,'fig/softConstrK');
+
+% Total Cost
+totCost_sc=sum(ut(:))*c/3;
+tNotEner_sc = sum(ut);
+%%
+figure;
+plot(saveS)
+%% Ex2 - only one slack
+%Reset constraints and objective
+con = [];
+obj = 0;
+
+% New decision varaibles
+S = sdpvar(1,1,'full');
 S = [s;s;s;s;s;s];
 
 % Exercise specific parameters
-penal=10;
+penal=1000;
 c=0.2; % CHF/kWh
 R_econom=[c/3,c/3,c/3]; % We sample every 20min and hold the input constant over this 20 min...
  %/!\ Why not devided by 3???
@@ -123,24 +170,25 @@ R_econom=[c/3,c/3,c/3]; % We sample every 20min and hold the input constant over
 
 % Constraints and Objectives
 for j = 1:N-1  
-    obj = obj + R_econom*(u(:,j))+  penal*S'*S;   % Cost function
+    obj = obj + R_econom*(u(:,j))+  penal*S(:)'*S(:);   % Cost function
     con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j+1)]; % System dynamics
     con = [con, y(:,j) == C*x(:,j)];
     con = [con, Hu*u(:,j) <= hu];                   % Input constraints
-    con = [con, Hy*y(:,j) <= hy + S];     % Output constraints
+    con = [con, Hy*y(:,j) <= hy + S(:)];     % Output constraints
 end
-    obj = obj + R_econom*(u(:,N))+  penal*S'*S;   % Cost function
+    obj = obj + R_econom*(u(:,N))+  penal*S(:)'*S(:);   % Cost function
     con = [con, y(:,N) == C*x(:,N)];
     con = [con, Hu*u(:,N) <= hu];                   % Input constraints
-    con = [con, Hy*y(:,N) <= hy + S];     % Output constraints
+    con = [con, Hy*y(:,N) <= hy + S(:)];     % Output constraints
 
 % Simulation
-%opt = sdpsettings('verbose',1, 'solver', '+gurobi');
-%controller = optimizer(con,obj,opt,[x(:,1);d(:)],u);
-%[xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 1);
+opt = sdpsettings('verbose',1, 'solver', '+gurobi');
+controller = optimizer(con,obj,opt,[x(:,1);d(:)],u);
+[xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 1,'fig/softConstrK');
 
 % Total Cost
-%Total_sc=sum(ut(:))*c/3;
+totCost_sc=sum(ut(:))*c/3;
+totEner_sc = sum(ut);
 
 %% Section 3: economic, soft constraints, and variable cost
 % Reset constraints and objective
@@ -167,12 +215,13 @@ con = [con, Hu*u(:,N) <= hu];                   % Input constraints
 con = [con, Hy*y(:,N) <= hy + S];     % Output constraints
 
 % Simulation
-%opt = sdpsettings('verbose',1, 'solver', '+gurobi');
-%controller = optimizer(con,obj,opt,[x(:,1);d(:);c(:)],u);
-%[xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 2);
+opt = sdpsettings('verbose',1, 'solver', '+gurobi');
+controller = optimizer(con,obj,opt,[x(:,1);d(:);c(:)],u);
+[xt, yt, ut, t] = simBuild(controller, T, @shiftPred, N, 2, 'fig/varCost');
 
 % Total Cost
-%Total_vc=refCost(1:T)/3*ut(1,:)'+refCost(1:T)/3*ut(2,:)'+refCost(1:T)/3*ut(3,:)';
+totCost_vc=refCost(1:T)/3*ut(1,:)'+refCost(1:T)/3*ut(2,:)'+refCost(1:T)/3*ut(3,:)';
+totE_vc= sum(ut);
 
 %% Section 4 : Night setbacks
 % Reset constraints and objective
@@ -204,10 +253,11 @@ end
 % Simulation
 ops = sdpsettings('verbose',1, 'solver', '+gurobi');
 controller = optimizer(con,obj,opt,[x(:,1);d(:);c(:);sb(:)],u);
-[xt_sb, yt_sb, ut_sb, t_sb] = simBuild(controller, T, @shiftPred, N, 3);
+[xt_sb, yt_sb, ut_sb, t_sb] = simBuild(controller, T, @shiftPred, N, 3, 'fig/nightTime');
 
 et_sb=ut_sb(1,:)+ut_sb(2,:)+ut_sb(3,:);
-Total_sb=refCost(1:T)/3*ut_sb(1,:)'+refCost(1:T)/3*ut_sb(2,:)'+refCost(1:T)/3*ut_sb(3,:)';
+totCost_sb=refCost(1:T)/3*ut_sb(1,:)'+refCost(1:T)/3*ut_sb(2,:)'+refCost(1:T)/3*ut_sb(3,:)';
+totEnerg_sb = sum(ut);
 
 %% Section 5 : Battery coupled with the building
 
@@ -222,10 +272,11 @@ e = sdpvar(1, N,'full');
 v = sdpvar(1, N,'full'); 
 xb=sdpvar(1, N,'full');
 sb = sdpvar(1, N,'full'); 
+
 % Exercise specific parameters
 penal=10;
-alpha=1;%ssModel.A;
-beta=1;%ssModel.Bu;
+alpha=ssModel.A;
+beta=ssModel.Bu;
 
 % Define constraints and objective for MPC-controller
 
@@ -263,13 +314,15 @@ end
     % u power to buildings
     
 % Simulation
-ops = sdpsettings('verbose',1, 'solver', '+gurobi');
+ops = sdpsettings('verbose',1, 'solver', 'quadprog');
 controller = optimizer(con,obj,ops,[x(:,1);xb(1);d(:);c(:);sb(:)],[u;v;e]);
 
-[xt_bat, yt_bat, ut_bat, t_bat, et_bat, xbt_bat] = simBuildStorage( controller, T, @shiftPred, N);
+[xt_bat, yt_bat, ut_bat, t_bat, et_bat, xbt_bat] = simBuildStorage( controller, T, @shiftPred, N,'fig/batterySystem');
 
-Total_bat=refCost(1:T)/3*et_bat(1,:)';
+totCost_bat=refCost(1:T)/3*et_bat(1,:)';
+totEner_bat = sum(ut_bat);
 
+%%
 
 % Plotting
 figure
@@ -278,5 +331,5 @@ plot(t_bat,vt_bat)
 hold on
 plot(t_bat,refCost(1:T))
 
-
+%%
 
