@@ -312,10 +312,19 @@ at_bat(:,:,i)=t_bat;
 aet_bat(:,:,i)=et_bat;
 axbt_bat(:,:,i)= xbt_bat;
 
+bxt_bat(:,:,i)=xt_bat;
+byt_bat(:,:,i)=yt_bat;
+but_bat(:,:,i)=ut_bat;
+bt_bat(:,:,i)=t_bat;
+bet_bat(:,:,i)=et_bat;
+bxbt_bat(:,:,i)= xbt_bat;
+
+
 %Total_bat(i)=refCost(1:T)/3*et_bat(1,:)';
 end
 end
 
+%%
 if(length(alpha)>1)
     % Plotting
     figure
@@ -342,12 +351,13 @@ if(length(alpha)>1)
 end
 
 if(length(beta)>1)
+    % Plotting
     figure
     title('State of charge with respect to dissipation')
     grid on
     hold on
     for i = 1:length(beta)
-    plot(at_bat(:,:,i),axbt_bat(1,:,i),'LineWidth',1); 
+    plot(bt_bat(:,:,i),bxbt_bat(1,:,i),'LineWidth',1); 
     hold on
     end
     legend('+20% dissipation','+15% dissipation','+10% dissipation','+5% dissipation','original dissipation','no dissipation');
@@ -358,9 +368,9 @@ if(length(beta)>1)
     grid on
     hold on
     for i = 1:length(beta)
-    plot(at_bat(:,:,i),aet_bat(1,:,i),'LineWidth',1);
+    plot(bt_bat(:,:,i),bet_bat(1,:,i),'LineWidth',1);
     hold on
-    aTotal_Cost_bat(i)=refCost(1:T)/3*aet_bat(1,:,i)';
+    aTotal_Cost_bat(i)=refCost(1:T)/3*bet_bat(1,:,i)';
     end
     legend('+20% dissipation','+15% dissipation','+10% dissipation','+5% dissipation','original dissipation','no dissipation');
 end
