@@ -171,7 +171,7 @@ ylabel('Power Input - Zone3 (kW)');
 xlim([t(1),t(end)])
 print(sprintf('%s_powerZones',figName),'-dpng');
 
-figure('visible','off');
+figure('Position',[0 0 1200 500]);
 subplot(2,1,1)
 plot(t,xbt(1,:)); grid on
 xlabel('Hours');
@@ -189,7 +189,7 @@ ylabel('Power purchased (kW)');
 xlim([t(1),t(end)])
 print(sprintf('%s_powerPurchase',figName),'-dpng');
 
-figure('Position',[0 0 1200 800]);
+figure('Position',[0 0 1200 500]);
 plot(t,vt(1,:))
 hold on; grid on;
 plot(t,10*cpt(1,:),'r')
