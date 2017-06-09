@@ -32,7 +32,7 @@ sprintf('The Project files are successfully installed')
 %Fill in here
 timeRange = 1/3*(0:size(refDist,2)-1);
 
-figure
+figure('Position',[0 0 2000 ]
 subplot(3,1,1)
 plot(timeRange,refDist(1,:)); hold on; grid on;
 xlim([timeRange(1), timeRange(end)]); 

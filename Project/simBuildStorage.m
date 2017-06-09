@@ -193,6 +193,52 @@ end
 % plot(t,vt(1,:))
 % hold on; grid on;
 % plot(t,10*cpt(1,:),'r')
+
+% legend('Zone-2 Input', 'High/Low Price Time')
+xlabel('Hours');
+ylabel('Power Input - Zone2 (kW)');
+
+
+% figure
+% subplot(2,3,6)
+plot(t,ut(3,:),'c')
+hold on; grid on
+plot(t,10*cpt(1,:),'r')
+% legend('Zone-3 Input', 'High/Low Price Time')
+legend('Zone-1','Zone-2','Zone-3','High/Low Price Time')
+xlabel('Hours');
+ylabel('Power Input - Zone3 (kW)');
+xlim([t(1),t(end)])
+print(sprintf('%s_powerZones',figName),'-dpng');
+
+figure('Position',[0 0 1200 500]);
+subplot(2,1,1)
+plot(t,xbt(1,:)); grid on
+xlabel('Hours');
+ylabel('Storage State');
+xlim([t(1),t(end)])
+
+% figure
+subplot(2,1,2)
+plot(t,et(1,:))
+hold on; grid on;
+plot(t,10*cpt(1,:),'r')
+legend('Electrical Power Purchased','High/Low Price Time')
+xlabel('Hours');
+ylabel('Power purchased (kW)');
+xlim([t(1),t(end)])
+print(sprintf('%s_powerPurchase',figName),'-dpng');
+
+figure('Position',[0 0 1200 500]);
+plot(t,vt(1,:))
+hold on; grid on;
+plot(t,10*cpt(1,:),'r')
+legend('Power to storage Purchased','High/Low Price Time')
+xlabel('Hours');
+ylabel('Power input to the Storage (kW)');
+xlim([t(1),t(end)])
+print(sprintf('%s_powerToStorage',figName), '-dpng');
+
 % legend('Power to storage Purchased','High/Low Price Time')
 % xlabel('Hours');
 % ylabel('Power input to the Storage (kW)');
