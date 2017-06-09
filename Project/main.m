@@ -565,7 +565,7 @@ end
 ops = sdpsettings('verbose',1, 'solver', '+gurobi');
 controller = optimizer(con,obj,ops,[x(:,1);xb(1);d(:);c(:);sb(:)],[u;v;e]);
 
-[xt_bat, yt_bat, ut_bat, t_bat, et_bat, xbt_bat] = simBuildStorage(controller, T, @shiftPred, N,'hello');
+[xt_bat, yt_bat, ut_bat, t_bat, et_bat, xbt_bat] = simBuildStorageJZ(controller, T, @shiftPred, N,'hello');
 
 axt_bat(:,:,i)=xt_bat;
 ayt_bat(:,:,i)=yt_bat;
@@ -667,7 +667,7 @@ end
 ops = sdpsettings('verbose',1, 'solver', '+gurobi');
 controller = optimizer(con,obj,ops,[x(:,1);xb(1);d(:);c(:);sb(:)],[u;v;e]);
 
-[xt_bat, yt_bat, ut_bat, t_bat, et_bat, xbt_bat] = simBuildStorage(controller, T, @shiftPred, N,'hello');
+[xt_bat, yt_bat, ut_bat, t_bat, et_bat, xbt_bat] = simBuildStorageJZ(controller, T, @shiftPred, N,'hello');
 
 bxt_bat(:,:,i)=xt_bat;
 byt_bat(:,:,i)=yt_bat;
@@ -764,7 +764,7 @@ end
 ops = sdpsettings('verbose',1, 'solver', '+gurobi');
 controller = optimizer(con,obj,ops,[x(:,1);xb(1);d(:);c(:);sb(:)],[u;v;e]);
 
-[xt_bat, yt_bat, ut_bat, t_bat, et_bat, xbt_bat] = simBuildStorage(controller, T, @shiftPred, N,'hello');
+[xt_bat, yt_bat, ut_bat, t_bat, et_bat, xbt_bat] = simBuildStorageJZ(controller, T, @shiftPred, N,'hello');
 
 axt_bat(:,:,i)=xt_bat;
 ayt_bat(:,:,i)=yt_bat;
