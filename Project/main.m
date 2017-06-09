@@ -70,14 +70,13 @@ refCost =0.2*ones(1,length(refDist));
 for i=0:floor(Tdays)  
 refCost(i*24*3+(30:30+18))=0.04;
 end
-%% Controller Design (Setting-up MPC optimizer)
-
 %% Section 1: tracking MPC
 
 % MPC parameters
 y_ref=[24 24 24]';         %initial conditions
 umax= 15; umin=0; ymax=26; ymin=22; % constraints
-R=eye(3);
+%R=eye(3);
+R=diag([1 2 6]);
 Hu=[1 0 0;0 1 0; 0 0 1; -1 0 0; 0 -1 0; 0 0 -1];
 hu=[umax,umax,umax,-umin,-umin,-umin]';
 Hy=[1 0 0;0 1 0; 0 0 1; -1 0 0; 0 -1 0; 0 0 -1];
@@ -237,12 +236,15 @@ controller = optimizer(con,obj,opt,[x(:,1);d(:);c(:);sb(:)],u);
 
 %% Change dissipation
 alpha=ssModel.A;
-%alpha=alpha*[0.8:0.05:1];
-%alpha=[alpha,1];
+%alpha=alpha*[0.8:0.05:1];  % comment for single simulation
+%alpha=[alpha,1];           % comment for single simulation
 
 beta=ssModel.Bu;
+beta=beta*[0.8:0.05:1];     % comment for single simulation
+beta=[beta,1];              % comment for single simulation
 
 for i = 1:1%length(alpha) %loop over alpha
+for itBeta = 1:length(beta)
 
 % Reset constraints and objective
 con = [];
@@ -271,7 +273,7 @@ for j = 1:N-1
     % Battery
     con = [con, v(j)==e(j)-sum(u(:,j))];
     con = [con, e(j)>=0];
-    con = [con, xb(j+1) == alpha(i)*xb(j)+beta*v(j)];
+    con = [con, xb(j+1) == alpha(i)*xb(j)+beta(itBeta)*v(j)];
 
 
     con = [con, -20 <= v(j) <= 20];  
@@ -301,7 +303,7 @@ end
 ops = sdpsettings('verbose',1, 'solver', '+gurobi');
 controller = optimizer(con,obj,ops,[x(:,1);xb(1);d(:);c(:);sb(:)],[u;v;e]);
 
-[xt_bat, yt_bat, ut_bat, t_bat, et_bat, xbt_bat] = simBuildStorage(controller, T, @shiftPred, N,'hello');
+[xt_bat, yt_bat, ut_bat, t_bat, et_bat, xbt_bat] = simBuildStorage(controller, T, @shiftPred, N,'fig/batt9');
 
 axt_bat(:,:,i)=xt_bat;
 ayt_bat(:,:,i)=yt_bat;
@@ -312,142 +314,58 @@ axbt_bat(:,:,i)= xbt_bat;
 
 %Total_bat(i)=refCost(1:T)/3*et_bat(1,:)';
 end
-
-% Plotting
-figure
-title('State of charge with respect to dissipation')
-grid on
-hold on
-for i = 1:length(alpha)
-plot(at_bat(:,:,i),axbt_bat(1,:,i),'LineWidth',1); 
-hold on
 end
-legend('+20% dissipation','+15% dissipation','+10% dissipation','+5% dissipation','original dissipation','no dissipation');
 
-% Plotting
-figure
-title('Electricity from grid with respect to dissipation')
-grid on
-hold on
-for i = 1:length(alpha)
-plot(at_bat(:,:,i),aet_bat(1,:,i),'LineWidth',1);
-hold on
-aTotal_Cost_bat(i)=refCost(1:T)/3*aet_bat(1,:,i)';
+if(length(alpha)>1)
+    % Plotting
+    figure
+    title('State of charge with respect to dissipation')
+    grid on
+    hold on
+    for i = 1:length(alpha)
+    plot(at_bat(:,:,i),axbt_bat(1,:,i),'LineWidth',1); 
+    hold on
+    end
+    legend('+20% dissipation','+15% dissipation','+10% dissipation','+5% dissipation','original dissipation','no dissipation');
+
+    % Plotting
+    figure
+    title('Electricity from grid with respect to dissipation')
+    grid on
+    hold on
+    for i = 1:length(alpha)
+    plot(at_bat(:,:,i),aet_bat(1,:,i),'LineWidth',1);
+    hold on
+    aTotal_Cost_bat(i)=refCost(1:T)/3*aet_bat(1,:,i)';
+    end
+    legend('+20% dissipation','+15% dissipation','+10% dissipation','+5% dissipation','original dissipation','no dissipation');
 end
-legend('+20% dissipation','+15% dissipation','+10% dissipation','+5% dissipation','original dissipation','no dissipation');
 
-% % Change storage capacity
-% 
-% alpha=ssModel.A;
-% beta=ssModel.Bu;
-% 
-% Stor_cap=[10,15,20,25,30,35];
-% 
-% 
-% for i = 1:length(Stor_cap)
-% for i = [1]
-% Reset constraints and objective
-% con = [];
-% obj = 0;
-% 
-% New decision varaibles
-% s1 = sdpvar(6,N,'full');
-% c = sdpvar(1, N,'full'); % CHF/kWh
-% e = sdpvar(1, N,'full'); 
-% v = sdpvar(1, N,'full'); 
-% xb=sdpvar(1, N,'full');
-% sb = sdpvar(1, N,'full'); 
-% Exercise specific parameters
-% penal=1;
-% 
-% 
-% Define constraints and objective for MPC-controller
-% 
-% for j = 1:N-1  
-%     System
-%     obj = obj + c(j)*e(j)+  penal*S(:,j)'*S(:,j);   % Cost function
-%     con = [con, x(:,j+1) == A*x(:,j) + Bu*u(:,j)+Bd*d(:,j)]; % System dynamics
-%     con = [con, y(:,j) == C*x(:,j)];
-%     con = [con, Hu*u(:,j) <= hu];                   % Input constraints
-%     con = [con, Hy*y(:,j) <= hy + S(:,j)+[sb(j);sb(j);sb(j);sb(j);sb(j);sb(j)]];% Output constraints
-%    
-%     Battery
-%     con = [con, v(j)==e(j)-sum(u(:,j))];
-%     con = [con, e(j)>=0];
-%     con = [con, xb(j+1) == alpha*xb(j)+beta*v(j)];
-% 
-% 
-%     con = [con, -20 <= v(j) <= 20];  
-%     
-%     if j ~= 1
-%         con = [con,  0 <=xb(j) <= Stor_cap(i)];
-%     end
-% end
-% 
-% Final constraints
-%     System
-%     obj = obj + c(N)*e(N)+  penal*S(:,N)'*S(:,N);   % Cost function
-%     con = [con, y(:,N) == C*x(:,N)];
-%     con = [con, Hu*u(:,N) <= hu];                   % Input constraints
-%     con = [con, Hy*y(:,N) <= hy + S(:,N)+[sb(N);sb(N);sb(N);sb(N);sb(N);sb(N)]];% Output constraints
-%     Battery
-%     con = [con, v(N)==e(N)-sum(u(:,N))];
-%     con = [con, e(N)>=0];
-%     con = [con, 0 <= xb(N) <= 20];
-%     con = [con, -20 <= v(N) <= 20];  
-% 
-%     v power to battery 
-%     e power from grid
-%     u power to buildings
-%     
-% 
-% ops = sdpsettings('verbose',1, 'solver', '+gurobi');
-% 
-% controller = optimizer(con,obj,ops,[x(:,1);xb(1);d(:);c(:);sb(:)],[u;v;e]);
-% 
-% [xt_bat, yt_bat, ut_bat, t_bat, et_bat, xbt_bat] = simBuildStorage(controller, T, @shiftPred, N,'hello');
-% 
-% 
-% bxt_bat(:,:,i)=xt_bat;
-% byt_bat(:,:,i)=yt_bat;
-% but_bat(:,:,i)=ut_bat;
-% bt_bat(:,:,i)=t_bat;
-% bet_bat(:,:,i)=et_bat;
-% bxbt_bat(:,:,i)= xbt_bat;
-% 
-% end
-% 
-% 
-% title('State of charge with respect to varying storage capacity')
-% grid on
-% hold on
-% for i = 1:length(Stor_cap)
-% plot(bt_bat(:,:,i),bxbt_bat(1,:,i),'LineWidth',1); 
-% hold on
-% end
-% legend('10 kWh','15 kWh','20 kWh','25 kWh','30 kWh','35 kWh')
-% figure
-% title('Electricity from grid with respect to varying storage capacity')
-% grid on
-% hold on
-% for i = 1:length(Stor_cap)
-% plot(bt_bat(:,:,i),bet_bat(1,:,i),'LineWidth',1);
-% hold on
-% bTotal_Cost_bat(i)=refCost(1:T)/3*bet_bat(1,:,i)';
-% end
-% legend('10 kWh','15 kWh','20 kWh','25 kWh','30 kWh','35 kWh')
-% 
-% Plotting
-% figure
-% title('Electricity from grid with respect to charging dissipation')
-% grid on
-% hold on
-% for i = 1:length(beta)
-% plot(ct_bat(:,:,i),cet_bat(1,:,i),'LineWidth',1);
-% hold on
-% cTotal_Cost_bat(i)=refCost(1:T)/3*cet_bat(1,:,i)';
-% end
-% legend('0.2','0.3','0.33','0.4','0.5');
+if(length(beta)>1)
+    figure
+    title('State of charge with respect to dissipation')
+    grid on
+    hold on
+    for i = 1:length(beta)
+    plot(at_bat(:,:,i),axbt_bat(1,:,i),'LineWidth',1); 
+    hold on
+    end
+    legend('+20% dissipation','+15% dissipation','+10% dissipation','+5% dissipation','original dissipation','no dissipation');
+
+    % Plotting
+    figure
+    title('Electricity from grid with respect to dissipation')
+    grid on
+    hold on
+    for i = 1:length(beta)
+    plot(at_bat(:,:,i),aet_bat(1,:,i),'LineWidth',1);
+    hold on
+    aTotal_Cost_bat(i)=refCost(1:T)/3*aet_bat(1,:,i)';
+    end
+    legend('+20% dissipation','+15% dissipation','+10% dissipation','+5% dissipation','original dissipation','no dissipation');
+end
+
+
 
 %%
 % Plotting
