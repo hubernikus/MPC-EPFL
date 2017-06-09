@@ -312,12 +312,12 @@ at_bat(:,:,i)=t_bat;
 aet_bat(:,:,i)=et_bat;
 axbt_bat(:,:,i)= xbt_bat;
 
-bxt_bat(:,:,i)=xt_bat;
-byt_bat(:,:,i)=yt_bat;
-but_bat(:,:,i)=ut_bat;
-bt_bat(:,:,i)=t_bat;
-bet_bat(:,:,i)=et_bat;
-bxbt_bat(:,:,i)= xbt_bat;
+bxt_bat(:,:,itBeta)=xt_bat;
+byt_bat(:,:,itBeta)=yt_bat;
+but_bat(:,:,itBeta)=ut_bat;
+bt_bat(:,:,itBeta)=t_bat;
+bet_bat(:,:,itBeta)=et_bat;
+bxbt_bat(:,:,itBeta)= xbt_bat;
 
 
 %Total_bat(i)=refCost(1:T)/3*et_bat(1,:)';
@@ -357,7 +357,7 @@ if(length(beta)>1)
     grid on
     hold on
     for i = 1:length(beta)
-    plot(bt_bat(:,:,i),bxbt_bat(1,:,i),'LineWidth',1); 
+    plot(bt_bat(1,:,i),bxbt_bat(1,:,i),'LineWidth',1); 
     hold on
     end
     legend('+20% dissipation','+15% dissipation','+10% dissipation','+5% dissipation','original dissipation','no dissipation');
